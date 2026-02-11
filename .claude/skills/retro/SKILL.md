@@ -1,0 +1,97 @@
+---
+name: retro
+description: Retrospective - review execution, capture learnings, update documentation
+argument-hint: <prd-directory-name>
+tags: [retrospective, review, documentation]
+---
+
+# Retro Skill
+
+Review a completed (or partially completed) execution and capture learnings.
+
+## Purpose
+
+After execution, review what happened:
+- What went well
+- What didn't work
+- What the PRDs got wrong
+- What patterns to carry forward
+- What to update in project documentation
+
+## Execution Steps
+
+### Step 1: Read Execution Logs
+
+Read all PRD files in `prds/{{argument}}/`:
+1. Master Plan - check overall status
+2. Each PRD file - read execution log sections
+3. Collect: completion times, issues, failed tasks, agent notes
+
+### Step 2: Analyze
+
+Produce a retrospective summary:
+
+```markdown
+# Retrospective: <Feature Name>
+
+Date: YYYY-MM-DD HH:MM UTC
+PRD Directory: prds/<dir>/
+
+## Summary
+- Total PRDs: X
+- Completed: X
+- Failed: X
+- Total tasks: X
+- Completed: X
+- Failed: X
+- Total execution time: Xm Ys
+
+## What Went Well
+- <pattern or outcome that worked>
+- <task that executed smoothly>
+
+## What Didn't Work
+- <task that failed and why>
+- <PRD specification that was ambiguous>
+- <dependency that was missing>
+
+## PRD Quality Issues
+- <tasks that were too large>
+- <missing file change specifications>
+- <wrong assumptions about codebase>
+
+## Patterns to Keep
+- <good patterns discovered during execution>
+- <effective task granularity examples>
+
+## Suggestions for Next Time
+- <improvements to planning>
+- <improvements to PRD format>
+- <improvements to execution>
+```
+
+### Step 3: Update PRD Directory
+
+Write the retrospective to:
+```
+prds/<dir>/retrospective.md
+```
+
+### Step 4: Update Master Plan
+
+Set Master Plan status to `RETRO_COMPLETE`.
+
+### Step 5: Suggest Documentation Updates
+
+If patterns were learned that should be captured in project rules or CLAUDE.md, suggest specific updates. Don't apply them without engineer approval.
+
+## Optional: Code Review
+
+If `/team-review` or a project-specific review skill exists, suggest running it on the changes made during execution. This catches issues that individual task agents might have missed.
+
+## Notes
+
+- The retrospective is for the engineer, not the AI. Write it clearly and honestly.
+- Don't sugarcoat failures. If PRDs were bad, say so.
+- Focus on actionable improvements, not blame.
+- The retro file becomes part of the project's institutional knowledge.
