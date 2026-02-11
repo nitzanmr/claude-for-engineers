@@ -147,7 +147,9 @@ After each wave completes:
    - Report results
 5. Note any issues or failures
 
-### Step 5: Update PRD Files
+### Step 5: Update PRD Files (Orchestrator Responsibility)
+
+**CRITICAL: The orchestrator (you) must update PRD files — do NOT rely on agents to do this.** Agents report results back to you; you write the execution logs. This is the audit trail and must not be skipped.
 
 For each completed task, update the PRD file:
 
@@ -179,6 +181,8 @@ For each completed task, update the PRD file:
 ```
 
 When all tasks in a PRD are done, update the PRD-level **Status** to `COMPLETED`.
+
+**Validation gate:** Do NOT proceed to the next wave until execution logs are written for all tasks in the current wave. If logs are missing, write them now before moving on.
 
 ### Step 6: Next Wave
 

@@ -78,8 +78,15 @@ Check:
 3. State flows correctly between components
 4. No circular dependencies introduced
 5. All integration points from PRD specs are wired correctly
+6. **Consumer completeness:** For every field, type, or interface that was changed,
+   grep the ENTIRE codebase for all usages. Verify that every consumer was updated.
+   This includes controllers, services, jobs, utilities, admin code, and scripts —
+   not just the files listed in the PRDs. Report any call sites still using the
+   old field name, old type, or old access pattern.
+7. **Index/constraint consistency:** For every model that was modified, verify that
+   model indexes and database constraints reference the correct (new) column names.
 
-Report: list any integration gaps or conflicts.
+Report: list any integration gaps, missed consumers, or stale references.
 ```
 
 ### Step 3: Synthesize Review

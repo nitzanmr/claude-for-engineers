@@ -56,6 +56,7 @@ Present your findings and proposed approach:
 - Proposed architecture / approach
 - Key tradeoffs and alternatives considered
 - Risks or unknowns
+- **Cross-boundary consumers:** When a feature changes how data is stored, accessed, or structured, identify all consumers that read that data across the codebase. If the change is scoped (e.g., per-tenant, per-org, per-environment) but some consumers operate cross-scope, flag this explicitly as a design challenge in the Master Plan. These cross-boundary patterns often require different handling and are easy to miss during PRD generation.
 
 Ask the engineer:
 - "Does this approach align with what you had in mind?"

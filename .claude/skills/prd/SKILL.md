@@ -44,6 +44,22 @@ For each PRD in the master plan:
 
 This exploration is critical. You MUST read the actual files before specifying changes.
 
+### Step 2.5: Impact Audit (MANDATORY)
+
+Before writing any PRD, run a comprehensive impact audit for every field, function, type, or interface being changed:
+
+1. **Call-site audit.** For every field/function/type being modified, renamed, or removed, grep the ENTIRE codebase for all usages. Include controllers, utilities, jobs, admin code, scripts — not just models and services.
+
+2. **Consumer audit.** For every data access pattern being changed (e.g., column rename, type change, new lookup method), find ALL consumers. Check every layer of the codebase, not just the obvious ones.
+
+3. **Index/constraint audit.** For every model or schema being modified, review its full definition including indexes, unique constraints, and associations. If a column is being renamed, added, or removed, verify all indexes and constraints referencing it are updated.
+
+4. **Migration consistency audit.** For any migration that drops or renames columns, verify it also handles indexes referencing those columns. For any migration that adds columns, verify default values and nullability.
+
+If the audit reveals call sites or consumers not covered by the current PRD plan, **add tasks to cover them**. Do NOT rely on agents to "discover" these during execution — they won't.
+
+**This step prevents the most common PRD failure mode: changing how something is stored or accessed but missing places that read it.**
+
 ### Step 3: Generate PRD Files
 
 For each PRD, create a file following the format in `.claude/rules/prd-format.md`.
