@@ -34,6 +34,20 @@ Ask the engineer which mode to use:
 
 ## Execution Flow
 
+### Step 0: Build Session Memory Bundle
+
+Before launching any task agents, assemble the shared context bundle.
+
+**1. Read current topic** — Read `.claude/context/current-topic.md` verbatim. If the file is missing or all fields are placeholder comments, stop and tell the engineer: "Run `/set-context` to set the current topic before executing."
+
+**2. Check MCP availability** — Attempt `search_nodes("mcp-health-check")`. Mark AVAILABLE or UNAVAILABLE.
+
+**3. Pre-fetch agent memories** (if AVAILABLE) — Call `search_nodes` for each of the 6 agent names with the current topic name.
+
+**4. Assemble and save bundle** — Same schema as in `/team-review` Step 0. Save to `.claude/context/run-log/<run-id>.md`. Use `YYYY-MM-DDTHH-MM-SS` format for the run ID to prevent collisions. Set `Triggered by: /execute` in the Run Info section.
+
+**5. Pass inline** — Include the full bundle in every agent prompt under a `## Session Memory` section. This is in addition to the full task spec (which is still passed inline as before).
+
 ### Step 1: Discovery and Validation
 
 1. Read `prds/<directory>/master-plan.md` to get PRD dependency graph
@@ -100,6 +114,9 @@ If something is ambiguous, STOP and report - do not guess.
 - Do not add imports, functions, or code not specified in the task
 - Do not refactor or "improve" surrounding code
 - If a recommended skill is listed, use it
+
+## Session Memory
+<full contents of the session memory bundle built in Step 0>
 
 ## When Complete, Report
 

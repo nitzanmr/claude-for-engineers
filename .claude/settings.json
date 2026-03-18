@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "memory": {
+      "command": "/usr/local/bin/npx",
+      "args": ["-y", "@modelcontextprotocol/server-memory"],
+      "env": {
+        "MEMORY_FILE_PATH": "/Users/nitzanmr/claude-for-engineers/.claude/memory/agent-memory.json"
+      }
+    }
+  }
+}

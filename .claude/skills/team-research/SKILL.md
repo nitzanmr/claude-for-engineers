@@ -19,6 +19,29 @@ Launch parallel research agents to deeply explore a codebase area. Used during `
 
 ## How It Works
 
+### Step 0: Build Session Memory Bundle
+
+Before launching research agents, assemble the shared context bundle.
+
+**1. Read current topic** — Read `.claude/context/current-topic.md` verbatim. If the file is missing or all fields are placeholder comments, stop and tell the engineer: "Run `/set-context` to set the current topic before researching."
+
+**2. Check MCP availability** — Attempt `search_nodes("mcp-health-check")`. Mark AVAILABLE or UNAVAILABLE.
+
+**3. Pre-fetch agent memories** (if AVAILABLE) — Call `search_nodes` for each of the 6 agent names with the current topic name.
+
+**4. Assemble and save bundle** — Same schema as in `/team-review` Step 0, **except** replace the `## Execution Context` section with `## Research Context`:
+
+~~~markdown
+## Research Context
+- Research area: <the topic/codebase area being researched>
+- Relevant PRD directory: <prds/<dir>/ if already known, or "N/A — pre-planning research">
+- Triggered by: /team-research during /plan
+~~~
+
+Save to `.claude/context/run-log/<run-id>.md`. Use `YYYY-MM-DDTHH-MM-SS` format for the run ID to prevent collisions.
+
+**5. Pass inline** — Include the full bundle in every agent prompt under a `## Session Memory` section.
+
 ### Step 1: Define Research Questions
 
 Break the area into 2-4 focused research questions. Each question will be handled by a separate agent.
@@ -95,6 +118,40 @@ This becomes input for the ongoing `/plan` conversation.
 - Each agent should be scoped to one area. Don't overlap.
 - Time-box: if an agent is taking too long on too many files, it should summarize what it found so far.
 - Agents report facts, not opinions. No architecture suggestions.
+
+## Specialist Agents in Research
+
+When research touches a specialist's domain, you can include them as a research agent. Specialist agents bring their memory context into the research — they already know what they've seen in this project before.
+
+| Specialist | When to include in research |
+|------------|---------------------------|
+| `dba-expert` | Mapping data access patterns, understanding schema, exploring query behavior |
+| `product-manager` | Understanding existing scope decisions, mapping feature dependencies |
+| `devops-engineer` | Mapping deployment topology, understanding infrastructure constraints |
+| `security-expert` | Mapping authentication flows, understanding current security posture |
+| `penetration-agent` | Mapping attack surface before a security-sensitive feature |
+| `qa-automation` | Mapping existing test coverage before planning new test strategy |
+
+To include a specialist in a research round, launch them the same way as a standard Explore agent but reference their agent file:
+
+```
+You are the <agent-name> agent. Follow the instructions in `.claude/agents/<agent-name>.md`.
+
+## Session Memory
+<full contents of the session memory bundle built in Step 0>
+
+Research question: <specific research question for this agent>
+
+Your report should include:
+1. Files found relevant to your domain
+2. Patterns you observe
+3. Concerns or flags from your specialist perspective
+4. Relevant memories from past sessions in this project
+
+Do NOT suggest changes — just report what exists and what you know.
+```
+
+Specialist research results are included in the synthesized research summary under a "Specialist Perspectives" section.
 
 ## Integration with /plan
 
