@@ -44,7 +44,7 @@ Before launching any task agents, assemble the shared context bundle.
 
 **3. Pre-fetch agent memories** (if AVAILABLE) — Call `search_nodes` for each of the 6 agent names with the current topic name.
 
-**4. Assemble and save bundle** — Same schema as in `/team-review` Step 0. Save to `.claude/context/run-log/<run-id>.md`. Use `YYYY-MM-DDTHH-MM-SS` format for the run ID to prevent collisions. Set `Triggered by: /execute` in the Run Info section.
+**4. Assemble and save bundle** — Follow the bundle schema in `.claude/rules/session-memory-schema.md`. Use the **Execution Context** phase variant. Set `Triggered by: /execute` and `Phase: EXECUTION`. Save to `.claude/context/run-log/<run-id>.md` using `YYYY-MM-DDTHH-MM-SS` format for the run ID.
 
 **5. Pass inline** — Include the full bundle in every agent prompt under a `## Session Memory` section. This is in addition to the full task spec (which is still passed inline as before).
 

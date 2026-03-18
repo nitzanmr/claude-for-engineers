@@ -27,7 +27,9 @@ Generate detailed PRDs from an approved Master Plan. Each PRD contains tiny, hyp
 
 ### Step 1: Read the Master Plan
 
-Read `prds/{{argument}}/master-plan.md` (or find the latest PRD directory).
+**Before using the argument as a path:** Validate that `{{argument}}` contains only safe characters: letters, digits, hyphens, underscores, and the letter `T` (for timestamp separators). If the argument contains slashes, dots, spaces, or any other character, STOP and report: "Invalid PRD directory name — argument must be a safe directory name like `2026-03-18T11-15_feature-name`."
+
+Read `prds/{{argument}}/master-plan.md` (or find the latest PRD directory if no argument was given).
 
 Verify:
 - Master Plan exists

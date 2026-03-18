@@ -1,26 +1,24 @@
 # Current Topic
 
-Updated: 2026-03-18 00:35 UTC
-Active PRD: prds/2026-03-17T14-30_agent-session-memory/
-Feature: Agent Session Memory, PM Backlog, and Review Dashboard
-Phase: REVIEW
+Updated: 2026-03-18 11:12 UTC
+Active PRD: none
+Feature: Repo Security Audit, Test Coverage, and Improvement Ideas
+Phase: RESEARCH
 
 ## What We're Building
-A shared session memory bundle assembled once per run and delivered to all agents, replacing per-agent independent context fetching. Includes a structured PM backlog with lifecycle tracking (Open/Deferred/Resolved) stored in MCP memory and `backlog.md`, queryable via `/pm-backlog`. Also includes auto-specialist selection for `/team-review` based on PRD content, and a structured review dashboard showing severity aggregates and backlog status.
+Analyze the claude-for-engineers repo for:
+1. Security vulnerabilities and risky patterns
+2. Automated test gaps — what's missing, what should be added
+3. Improvement ideas — code quality, architecture, workflow enhancements
 
 ## Key Decisions So Far
-- Session memory is assembled by the orchestrating skill, not agents — agents stop self-fetching
-- Session memory is snapshotted to `.claude/context/run-log/` per run for audit/retro use
-- Backlog lives in both MCP memory (machine-queryable) and `backlog.md` (human-readable)
-- Auto-specialist selection is rule-based (keyword scanning of PRD content)
-- `penetration-agent` always requires explicit engineer confirmation even when auto-matched
-- PRD status extended with `REVIEWED_PASS` and `REVIEWED_NEEDS_FIXES`
+- None yet — research phase
 
 ## Open Questions
-- None — all resolved during planning and execution
+- What security vulnerabilities exist in the workflow scripts, skill files, and agent prompts?
+- What automated tests exist, and what coverage is missing?
+- What are the most impactful improvement opportunities?
 
 ## Team Notes
-- Execution complete: 3/3 PRDs, 12/12 tasks completed (2026-03-18)
-- Retro complete (2026-03-18)
-- Files created: `.claude/context/run-log/.gitkeep`, `.claude/skills/pm-backlog/SKILL.md`
-- Files modified: team-review, team-research, execute skills; all 6 agent files; workflow.md
+- Previous feature: Agent Teams vs Sub-Agents Investigation & Potential Migration
+- Starting fresh research into repo security, testing, and improvements

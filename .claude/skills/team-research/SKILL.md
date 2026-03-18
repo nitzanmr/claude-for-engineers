@@ -2,7 +2,7 @@
 name: team-research
 description: Explore a codebase area in depth with parallel research agents before planning
 argument-hint: <area to research, e.g. "authentication system" or "how payments work">
-allowed-tools: Read, Glob, Grep, Task, Bash
+allowed-tools: Read, Glob, Grep, Task, Bash, TeamCreate, TaskCreate, TaskList, TaskUpdate, TaskGet, SendMessage
 tags: [research, exploration, team, parallel]
 ---
 
@@ -17,6 +17,20 @@ Launch parallel research agents to deeply explore a codebase area. Used during `
 - When the engineer asks "how does X work today?" and the answer spans many files
 - When mapping out all files that will be affected by a change
 
+## Execution Modes
+
+### Task Mode (Default)
+- Uses the `Task` tool to launch parallel Explore subagents
+- Agents run independently, report back to the orchestrator
+- Best for: quick research, 2-3 questions, when areas are clearly separate
+- No coordination overhead
+
+### Swarm Mode
+- Uses `TeamCreate` to create a team with a shared task list
+- Agents can consult each other via `SendMessage` when they find cross-domain findings
+- Live task progress visible via `TaskList`
+- Best for: broader research (3-4 questions), overlapping areas, or when you want visibility into what each agent is finding in real time
+
 ## How It Works
 
 ### Step 0: Build Session Memory Bundle
@@ -29,16 +43,7 @@ Before launching research agents, assemble the shared context bundle.
 
 **3. Pre-fetch agent memories** (if AVAILABLE) — Call `search_nodes` for each of the 6 agent names with the current topic name.
 
-**4. Assemble and save bundle** — Same schema as in `/team-review` Step 0, **except** replace the `## Execution Context` section with `## Research Context`:
-
-~~~markdown
-## Research Context
-- Research area: <the topic/codebase area being researched>
-- Relevant PRD directory: <prds/<dir>/ if already known, or "N/A — pre-planning research">
-- Triggered by: /team-research during /plan
-~~~
-
-Save to `.claude/context/run-log/<run-id>.md`. Use `YYYY-MM-DDTHH-MM-SS` format for the run ID to prevent collisions.
+**4. Assemble and save bundle** — Follow the bundle schema in `.claude/rules/session-memory-schema.md`. Use the **Research Context** phase variant (not Execution Context). Set `Triggered by: /team-research during /plan` and `Phase: RESEARCH`. Save to `.claude/context/run-log/<run-id>.md` using `YYYY-MM-DDTHH-MM-SS` format for the run ID.
 
 **5. Pass inline** — Include the full bundle in every agent prompt under a `## Session Memory` section.
 
@@ -53,7 +58,23 @@ Example for "payment system":
 
 Present the research questions to the engineer. Ask: "These are the areas I want to explore in parallel. Want to adjust?"
 
+After engineer approves the research questions, ask:
+
+```
+Research <N> questions with <N> agents.
+  • Task mode  — agents run independently, no coordination, best for quick/focused research
+  • Swarm mode — agents share a task list and can consult each other via messages when
+                 they find cross-domain findings; best when areas overlap or you want
+                 live visibility into progress
+
+Which mode?
+```
+
+Wait for confirmation before launching any agents.
+
 ### Step 2: Launch Research Agents
+
+#### Task Mode
 
 Launch 2-4 agents in parallel using the `Task` tool with `subagent_type: "Explore"`.
 
@@ -74,6 +95,32 @@ Your report should include:
 
 Be thorough. List every file. Show key code structures.
 Do NOT suggest changes - just report what exists.
+```
+
+#### Swarm Mode
+
+1. **Create team:** `TeamCreate` with name `research-<run-id>` (use the run ID from Step 0)
+2. **Create tasks:** `TaskCreate` one task per research question, with the full research prompt as the description (same prompt as task mode above, plus the consultation instruction below)
+3. **Spawn agents:** Launch Explore agents using the `Task` tool with `team_name: "research-<run-id>"`. One agent per research question. Launch all simultaneously.
+4. **Assign tasks:** `TaskUpdate` each task with the corresponding agent as `owner`
+5. **Monitor:** Track progress via `TaskList`. Agents will pick up their tasks and update status as they work.
+6. **Collect results:** Read agent completion reports and task outputs
+
+**Swarm mode agent prompt addition** — append this to every agent's research prompt when in swarm mode:
+
+```
+## Team Coordination
+
+You are part of a research team. Other agents are exploring adjacent areas simultaneously.
+
+If you find something that is clearly relevant to another agent's research area, send them a message:
+- Use `SendMessage` to the teammate assigned to that question
+- Keep it brief: "Found [X] in [file] — may be relevant to your area"
+
+If you are unsure whether your area overlaps with another agent's, you can ask:
+- `SendMessage`: "Are you covering [topic]? I found something that might be in your scope"
+
+Do NOT wait for replies before completing your own research. Consultation is optional and async.
 ```
 
 ### Step 3: Synthesize Results

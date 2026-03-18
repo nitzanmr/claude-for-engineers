@@ -2,7 +2,7 @@
 name: team-review
 description: Launch parallel code review agents to review execution results against PRD specifications
 argument-hint: <prd-directory-name>
-allowed-tools: Read, Glob, Grep, Task, Bash
+allowed-tools: Read, Glob, Grep, Task, Bash, TeamCreate, TaskCreate, TaskList, TaskUpdate, TaskGet, SendMessage
 tags: [review, quality, team, parallel]
 ---
 
@@ -16,6 +16,20 @@ Launch parallel review agents to verify that executed PRD tasks produced correct
 - When the engineer wants a thorough review before merging
 - During `/retro` for detailed quality analysis
 - After partial execution to check what's been done so far
+
+## Execution Modes
+
+### Task Mode (Default)
+- Uses the `Task` tool to launch parallel review subagents
+- Agents run independently, PM synthesis runs after all agents finish
+- Best for: straightforward reviews, small feature PRDs, quick checks
+
+### Swarm Mode
+- Uses `TeamCreate` to create a team with a shared task list
+- PM synthesis task is created with `addBlockedBy` on all review tasks — starts automatically when all reviews are done
+- Agents can consult each other via `SendMessage` when they find cross-domain findings (e.g., code-quality agent spots something security-relevant)
+- Live task progress visible via `TaskList`
+- Best for: large reviews with many specialists, or when you want visibility into reviewer progress in real time
 
 ## How It Works
 
@@ -39,48 +53,7 @@ Call `search_nodes` once per agent with the current topic name (the value of the
 - `search_nodes("penetration-agent", <topic>)`
 
 **4. Assemble the bundle**
-Create the following Markdown document (fill in actual values):
-
-```markdown
-# Session Memory — <run-id>
-
-## Run Info
-- Run ID: YYYY-MM-DDTHH-MM-SS
-- Triggered by: /team-review
-- Phase: REVIEW
-- PRD directory: prds/<dir>/
-
-## Current Topic (snapshot at run time)
-<verbatim content of .claude/context/current-topic.md>
-
-## MCP Status
-- Server: AVAILABLE | UNAVAILABLE
-- Memory file: .claude/memory/agent-memory.json
-- Note: <if UNAVAILABLE: "All agents proceed without past memory this session">
-
-## Pre-fetched Agent Memories
-### product-manager — past decisions on this topic
-<search_nodes results or "None">
-
-### security-expert — past findings on this topic
-<search_nodes results or "None">
-
-### dba-expert — past findings on this topic
-<search_nodes results or "None">
-
-### devops-engineer — past production notes on this topic
-<search_nodes results or "None">
-
-### qa-automation — past coverage findings on this topic
-<search_nodes results or "None">
-
-### penetration-agent — past attack vectors on this topic
-<search_nodes results or "None">
-
-## Execution Context
-- Tasks completed: X/Y (from PRD execution logs)
-- Files changed: <list of files from execution logs>
-```
+Follow the bundle schema defined in `.claude/rules/session-memory-schema.md`. Use the **Execution Context** phase variant (this is a `/team-review` run). Fill in all values from steps 1-3 above.
 
 **5. Save the bundle**
 Write the assembled bundle to `.claude/context/run-log/<run-id>.md` (e.g. `2026-03-17T14-22-05.md`). Use seconds in the run ID (`YYYY-MM-DDTHH-MM-SS`) to prevent collisions when two sessions start in the same minute.
@@ -98,7 +71,9 @@ Read all PRD files in the target directory. For each completed task, collect:
 
 ### Step 2: Assign Review Agents
 
-Launch parallel review agents, each focused on one aspect:
+#### Task Mode
+
+Launch parallel review agents using the `Task` tool with `subagent_type: "Explore"` or `"general-purpose"`, each focused on one aspect:
 
 **Agent 1 - Spec Compliance:**
 ```
@@ -158,6 +133,32 @@ Check:
 Report: list any integration gaps, missed consumers, or stale references.
 ```
 
+#### Swarm Mode
+
+1. **Create team:** `TeamCreate` with name `review-<run-id>` (use the run ID from Step 0)
+2. **Create review tasks:** `TaskCreate` one task per review agent (spec-compliance, code-quality, and any auto-selected specialists from Step 2b). Use the agent prompts above as the task description.
+3. **Create PM synthesis task:** `TaskCreate` with name `pm-synthesis`, description containing the full PM synthesis prompt from Step 3. Set `addBlockedBy` to all review task IDs created in step 2 — PM does not start until every review task is DONE.
+4. **Spawn agents:** Launch review agents using the `Task` tool with `team_name: "review-<run-id>"`. Launch all review agents simultaneously. Also launch the PM agent with `team_name` — it will wait on its blocked task automatically.
+5. **Assign tasks:** `TaskUpdate` each review task with the corresponding agent as `owner`
+6. **Monitor:** Track progress via `TaskList`. When `pm-synthesis` status transitions to `IN_PROGRESS`, all review tasks have completed.
+7. **Collect results:** After `pm-synthesis` is DONE, read all task outputs and proceed to Step 4 (write review.md, backlog.md, show dashboard) — same as task mode.
+
+**Swarm mode agent prompt addition** — append this to every review agent's prompt when in swarm mode (NOT to the PM synthesis prompt):
+
+```
+## Team Coordination
+
+You are part of a review team. Other specialist agents are reviewing adjacent dimensions simultaneously.
+
+If you find an issue that is clearly in another specialist's domain, send them a message:
+- Use `SendMessage` to the relevant teammate
+- Example: "Found potential SQL injection in src/api/payments.ts line 42 — flagging for security-expert"
+- Example: "PaymentService has no retry logic on API failure — may be relevant to devops-engineer"
+
+Keep messages brief and specific: file path + line/function + why it's relevant to them.
+Do NOT wait for replies before completing your own review.
+```
+
 ### Step 2b: Auto-Select Specialist Agents
 
 Before launching agents, scan the PRD files and execution logs collected in Step 1 for the following keyword patterns. Include the mapped specialist automatically if any match is found.
@@ -186,6 +187,20 @@ Proceed with these specialists? (y / adjust)
 Wait for engineer confirmation. If "adjust", let them add or remove specialists before continuing.
 
 `penetration-agent` always requires explicit engineer confirmation even when auto-matched.
+
+After engineer confirms the specialist selection, ask:
+
+```
+Review with <N> agents: <list agent names>.
+  • Task mode  — agents run independently, PM synthesis runs after all finish
+  • Swarm mode — agents share a task list and can consult each other via messages;
+                 PM synthesis is blocked until all reviews complete; live progress
+                 visible via TaskList
+
+Which mode?
+```
+
+Wait for confirmation before launching any agents.
 
 Example launch prompt for a specialist:
 ```
