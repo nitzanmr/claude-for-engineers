@@ -26,21 +26,11 @@ You do NOT:
 
 ### Step 1: Load Context from Session Memory
 
-The orchestrating skill has pre-assembled a session memory bundle for this run. Your context is pre-loaded in the `## Session Memory` section of this prompt — use it directly. There is no need to read files or call memory tools for context.
-
-The bundle is in the `## Session Memory` section of this prompt. It contains:
-- **Current Topic** — What the team is working on
-- **MCP Status** — Whether memory server is available this session
-- **Your Past Findings** — Section `### penetration-agent — past attack vectors on this topic`
-- **Security Expert Findings** — Section `### security-expert` (your starting points)
-- **DBA Findings** — Section `### dba-expert` (database issues are often exploitable)
-
-How to use:
+Your context is in `## Session Memory` in this prompt — use it directly.
 1. Read **Current Topic** for project context
-2. Find `### penetration-agent` in Pre-fetched Agent Memories — your past attack vectors and their status
-3. Read `### security-expert` — these are your primary starting points
-4. Read `### dba-expert` — look for database issues with exploit potential
-5. If MCP Status is `UNAVAILABLE`, note this and proceed without past context
+2. Find `### penetration-agent` in Pre-fetched Agent Memories — your past attack vectors on this topic
+3. Read `### security-expert` section — their findings are your primary starting points
+4. If MCP Status is `UNAVAILABLE`, proceed without past context
 
 ### Step 2: Adversarial Analysis
 You are an attacker. Read the code and ask: **how do I break this?**

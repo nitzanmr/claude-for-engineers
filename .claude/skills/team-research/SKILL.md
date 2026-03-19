@@ -19,17 +19,9 @@ Launch parallel research agents to deeply explore a codebase area. Used during `
 
 ## Execution Modes
 
-### Task Mode (Default)
-- Uses the `Task` tool to launch parallel Explore subagents
-- Agents run independently, report back to the orchestrator
-- Best for: quick research, 2-3 questions, when areas are clearly separate
-- No coordination overhead
+**Task Mode (Default):** `Task` tool, parallel Explore agents, independent, no coordination. Best for quick research, 2-3 questions.
 
-### Swarm Mode
-- Uses `TeamCreate` to create a team with a shared task list
-- Agents can consult each other via `SendMessage` when they find cross-domain findings
-- Live task progress visible via `TaskList`
-- Best for: broader research (3-4 questions), overlapping areas, or when you want visibility into what each agent is finding in real time
+**Swarm Mode:** `TeamCreate` + shared task list, agents can consult via `SendMessage`. Best for 3-4 overlapping questions or when live progress visibility is needed.
 
 ## How It Works
 
@@ -41,11 +33,7 @@ Before launching research agents, assemble the shared context bundle.
 
 **2. Check MCP availability** — Attempt `search_nodes("mcp-health-check")`. Mark AVAILABLE or UNAVAILABLE.
 
-**3. Pre-fetch agent memories** (if AVAILABLE) — Call `search_nodes` for each of the 6 agent names with the current topic name.
-
-**4. Assemble and save bundle** — Follow the bundle schema in `.claude/rules/session-memory-schema.md`. Use the **Research Context** phase variant (not Execution Context). Set `Triggered by: /team-research during /plan` and `Phase: RESEARCH`. Save to `.claude/context/run-log/<run-id>.md` using `YYYY-MM-DDTHH-MM-SS` format for the run ID.
-
-**5. Pass inline** — Include the full bundle in every agent prompt under a `## Session Memory` section.
+**3. Assemble partial bundle** — Build the Run Info + Current Topic + MCP Status sections only. Use the **Research Context** phase variant. Set `Triggered by: /team-research during /plan` and `Phase: RESEARCH`. Save to `.claude/context/run-log/<run-id>.md` using `YYYY-MM-DDTHH-MM-SS` format. Specialist agent memories will be added in Step 1b after research questions are defined.
 
 ### Step 1: Define Research Questions
 
@@ -71,6 +59,13 @@ Which mode?
 ```
 
 Wait for confirmation before launching any agents.
+
+### Step 1b: Finalize Session Memory Bundle
+
+Now that the research questions and agent set are confirmed:
+1. If any specialist agents are included in this round (see Specialist Agents in Research section below) and MCP is AVAILABLE: call `search_nodes("<agent-name>", <topic>)` for each specialist.
+2. Append `## Pre-fetched Agent Memories` to the saved bundle (one `### <agent-name>` section per specialist). If only general Explore agents: omit this section.
+3. The finalized bundle is ready — include it in every agent prompt under `## Session Memory`.
 
 ### Step 2: Launch Research Agents
 
@@ -199,54 +194,6 @@ Do NOT suggest changes — just report what exists and what you know.
 ```
 
 Specialist research results are included in the synthesized research summary under a "Specialist Perspectives" section.
-
-## Integration with /plan
-
-Research results feed back into the planning conversation:
-
-```
-/plan payment feature
-  ↓
-  [discussion reveals complexity]
-  ↓
-  /team-research payment state, payment API, payment UI
-  ↓
-  [agents explore in parallel]
-  ↓
-  [synthesized results shared]
-  ↓
-  [planning conversation continues with full context]
-  ↓
-  Master Plan written
-```
-
-The engineer stays in the `/plan` conversation the whole time. Research is a sub-step, not a separate phase.
-
-## Examples
-
-### Small research (2 agents)
-```
-/team-research how user profiles work
-→ Agent 1: Profile state and selectors
-→ Agent 2: Profile UI components
-```
-
-### Medium research (3 agents)
-```
-/team-research authentication system
-→ Agent 1: Auth state, tokens, session management
-→ Agent 2: Auth API calls and error handling
-→ Agent 3: Auth UI (login, signup, password reset)
-```
-
-### Large research (4 agents)
-```
-/team-research entire notification system
-→ Agent 1: Notification types and state
-→ Agent 2: Notification API and push integration
-→ Agent 3: Notification UI components
-→ Agent 4: Notification settings and preferences
-```
 
 ## Notes
 

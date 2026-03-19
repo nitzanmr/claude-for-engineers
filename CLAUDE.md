@@ -41,7 +41,7 @@ Invoke a specialist agent directly for a focused review without running a full `
 | `/pm-review` | Product Manager | Scope, priority, efficiency tradeoffs |
 | `/qa-review` | QA Automation | Test coverage, quality, acceptance criteria |
 | `/security-review` | Security Expert | Auth, input validation, OWASP Top 10 |
-| `/devops-review` | DevOps Engineer | Deployment readiness, infra, observability |
+| `/devops-review` | DevOps Engineer | Deployment readiness, infra, observability, tool discovery and integration |
 | `/dba-review` | DBA Expert | Queries, schema, indexes, data access patterns |
 | `/pentest` | Penetration Agent | Attack vectors, business logic bypass |
 

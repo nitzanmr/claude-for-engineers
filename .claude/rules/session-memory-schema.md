@@ -22,23 +22,10 @@ This document is the single source of truth for the session memory bundle format
 - Note: <only include this line if UNAVAILABLE — "All agents proceed without past memory this session">
 
 ## Pre-fetched Agent Memories
-### product-manager — past decisions on this topic
-<search_nodes results, or "None" if no results or MCP UNAVAILABLE>
+<One section per active agent only. Omit this entire section if no agents are active or MCP is UNAVAILABLE.>
 
-### security-expert — past findings on this topic
-<search_nodes results, or "None">
-
-### dba-expert — past findings on this topic
-<search_nodes results, or "None">
-
-### devops-engineer — past production notes on this topic
-<search_nodes results, or "None">
-
-### qa-automation — past coverage findings on this topic
-<search_nodes results, or "None">
-
-### penetration-agent — past attack vectors on this topic
-<search_nodes results, or "None">
+### <agent-name> — <relevant label for this agent>
+<search_nodes results, or "None" if no results>
 
 ## Phase Context
 <Use the phase-specific section below that matches the triggering skill>
@@ -69,7 +56,12 @@ This document is the single source of truth for the session memory bundle format
 
 2. **Check MCP availability** — Attempt `search_nodes("mcp-health-check")`. If it responds (even with no results): MCP Status = `AVAILABLE`. If it errors or the tool is not found: MCP Status = `UNAVAILABLE`.
 
-3. **Pre-fetch memories** (only if AVAILABLE) — Call `search_nodes` once per agent with the current topic name (the `Feature:` field value from current-topic.md). Agents: `product-manager`, `security-expert`, `dba-expert`, `devops-engineer`, `qa-automation`, `penetration-agent`.
+3. **Pre-fetch memories** (only if AVAILABLE) — Call `search_nodes` only for agents actively participating in this run. Use the `Feature:` field value from current-topic.md as the query. Active agent set depends on the triggering skill:
+   - `/execute`: agents listed as `Recommended agent:` in PRD task files — determined after Step 1 discovery. Skip pre-fetch if none.
+   - `/team-review`: `product-manager` (always) + specialists confirmed by engineer in Step 2b — done after Step 2b, not at run start.
+   - `/team-research`: specialist agents included in this research round from Step 1 — done after Step 1. Skip if only general Explore agents.
+   - Specialist review skills (`/pm-review`, `/qa-review`, etc.): the single agent for that skill only.
+   Omit the `## Pre-fetched Agent Memories` section entirely if no agents are active.
 
 4. **Fill the bundle** — Use the format above. Set the Phase Context section to the variant matching the current skill.
 

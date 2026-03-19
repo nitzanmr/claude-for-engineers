@@ -43,23 +43,7 @@ Read `.claude/context/current-topic.md` verbatim. If the file is missing or all 
 **2. Check MCP availability**
 Attempt to call `search_nodes` with query `"mcp-health-check"`. If the tool responds (even with no results): MCP Status = `AVAILABLE`. If the tool is not found or errors: MCP Status = `UNAVAILABLE`.
 
-**3. Pre-fetch agent memories** (only if MCP is AVAILABLE)
-Call `search_nodes` once per agent with the current topic name (the value of the `Feature:` field in current-topic.md):
-- `search_nodes("product-manager", <topic>)`
-- `search_nodes("security-expert", <topic>)`
-- `search_nodes("dba-expert", <topic>)`
-- `search_nodes("devops-engineer", <topic>)`
-- `search_nodes("qa-automation", <topic>)`
-- `search_nodes("penetration-agent", <topic>)`
-
-**4. Assemble the bundle**
-Follow the bundle schema defined in `.claude/rules/session-memory-schema.md`. Use the **Execution Context** phase variant (this is a `/team-review` run). Fill in all values from steps 1-3 above.
-
-**5. Save the bundle**
-Write the assembled bundle to `.claude/context/run-log/<run-id>.md` (e.g. `2026-03-17T14-22-05.md`). Use seconds in the run ID (`YYYY-MM-DDTHH-MM-SS`) to prevent collisions when two sessions start in the same minute.
-
-**6. Pass inline to all agents**
-Include the full bundle text in every agent prompt for this run under a `## Session Memory` section. Agents do NOT read `current-topic.md` themselves or call `search_nodes` — all context is already in the bundle.
+**3. Assemble partial bundle** — Build the Run Info + Current Topic + MCP Status sections only (no Pre-fetched Agent Memories yet). Set `Triggered by: /team-review` and `Phase: REVIEW`. Save to `.claude/context/run-log/<run-id>.md` using `YYYY-MM-DDTHH-MM-SS` format. Agent memories will be added in Step 2c after specialist selection is confirmed.
 
 ### Step 1: Read PRD Execution Logs
 
@@ -201,6 +185,13 @@ Which mode?
 ```
 
 Wait for confirmation before launching any agents.
+
+### Step 2c: Finalize Session Memory Bundle
+
+Now that the specialist set is confirmed:
+1. If MCP is AVAILABLE: call `search_nodes("<agent-name>", <topic>)` for `product-manager` (always) + each confirmed specialist agent.
+2. Append `## Pre-fetched Agent Memories` to the saved bundle (one `### <agent-name>` section per active agent).
+3. The finalized bundle is ready — include it in every agent prompt for this run under `## Session Memory`.
 
 Example launch prompt for a specialist:
 ```

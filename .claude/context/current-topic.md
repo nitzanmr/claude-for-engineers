@@ -1,24 +1,24 @@
 # Current Topic
 
-Updated: 2026-03-18 11:12 UTC
+Updated: 2026-03-19 00:00 UTC
 Active PRD: none
-Feature: Repo Security Audit, Test Coverage, and Improvement Ideas
+Feature: Perplexity AI Research Tool Integration
 Phase: RESEARCH
 
 ## What We're Building
-Analyze the claude-for-engineers repo for:
-1. Security vulnerabilities and risky patterns
-2. Automated test gaps — what's missing, what should be added
-3. Improvement ideas — code quality, architecture, workflow enhancements
+A new research tool/skill that integrates Perplexity AI for deep research and grounded analysis with current, real-time information. This would enhance the claude-for-engineers workflow by adding web-grounded research capabilities to planning, team-research, and specialist review phases.
 
 ## Key Decisions So Far
 - None yet — research phase
+- Agents involved: DevOps Engineer, PM, Security Expert
 
 ## Open Questions
-- What security vulnerabilities exist in the workflow scripts, skill files, and agent prompts?
-- What automated tests exist, and what coverage is missing?
-- What are the most impactful improvement opportunities?
+- How should Perplexity AI be integrated into the workflow (new skill, MCP server, agent tool)?
+- What are the infrastructure and API key management implications?
+- What security risks does an external AI API integration introduce?
+- How does this complement or replace existing /team-research capabilities?
+- What deployment and configuration management is needed?
 
 ## Team Notes
-- Previous feature: Agent Teams vs Sub-Agents Investigation & Potential Migration
-- Starting fresh research into repo security, testing, and improvements
+- Previous feature: Repo Security Audit, Test Coverage, and Improvement Ideas
+- Starting research into Perplexity AI integration for real-time grounded research
