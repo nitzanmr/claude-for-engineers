@@ -131,10 +131,13 @@ When to use:
 - When engineer wants thorough verification
 
 How it works:
-- Launch parallel review agents (spec compliance + code quality)
-- Compare actual files against PRD specifications
-- Report deviations, issues, and quality problems
-- Engineer decides what to fix
+- Build session memory bundle (context snapshot + pre-fetched agent memories)
+- Scan PRD content to auto-select specialist agents; show selection to engineer
+- Launch parallel review agents (spec compliance + code quality + auto-selected specialists)
+- PM synthesizes all findings into prioritized backlog (Needed / Desirable / Hard)
+- Write `review.md` (full reports) and `backlog.md` (structured issue list)
+- Show review dashboard: severity aggregate, backlog status, PRD status badge
+- Engineer decides what to fix (or run `/pm-backlog <dir>` to manage items)
 
 ### Phase 5: Retro (Retrospective)
 
@@ -193,7 +196,8 @@ DRAFT → APPROVED → PRDS_GENERATED → IN_PROGRESS → COMPLETED → RETRO_CO
 
 **PRD:**
 ```
-PENDING → IN_PROGRESS → COMPLETED
+PENDING → IN_PROGRESS → COMPLETED → REVIEWED_PASS
+                                  → REVIEWED_NEEDS_FIXES
                       → PARTIAL (some tasks failed)
                       → BLOCKED (dependency failed)
 ```

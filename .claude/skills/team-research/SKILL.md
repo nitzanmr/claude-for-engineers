@@ -2,7 +2,7 @@
 name: team-research
 description: Explore a codebase area in depth with parallel research agents before planning
 argument-hint: <area to research, e.g. "authentication system" or "how payments work">
-allowed-tools: Read, Glob, Grep, Task, Bash
+allowed-tools: Read, Glob, Grep, Task, Bash, TeamCreate, TaskCreate, TaskList, TaskUpdate, TaskGet, SendMessage
 tags: [research, exploration, team, parallel]
 ---
 
@@ -17,7 +17,23 @@ Launch parallel research agents to deeply explore a codebase area. Used during `
 - When the engineer asks "how does X work today?" and the answer spans many files
 - When mapping out all files that will be affected by a change
 
+## Execution Modes
+
+**Task Mode (Default):** `Task` tool, parallel Explore agents, independent, no coordination. Best for quick research, 2-3 questions.
+
+**Swarm Mode:** `TeamCreate` + shared task list, agents can consult via `SendMessage`. Best for 3-4 overlapping questions or when live progress visibility is needed.
+
 ## How It Works
+
+### Step 0: Build Session Memory Bundle
+
+Before launching research agents, assemble the shared context bundle.
+
+**1. Read current topic** — Read `.claude/context/current-topic.md` verbatim. If the file is missing or all fields are placeholder comments, stop and tell the engineer: "Run `/set-context` to set the current topic before researching."
+
+**2. Check MCP availability** — Attempt `search_nodes("mcp-health-check")`. Mark AVAILABLE or UNAVAILABLE.
+
+**3. Assemble partial bundle** — Build the Run Info + Current Topic + MCP Status sections only. Use the **Research Context** phase variant. Set `Triggered by: /team-research during /plan` and `Phase: RESEARCH`. Save to `.claude/context/run-log/<run-id>.md` using `YYYY-MM-DDTHH-MM-SS` format. Specialist agent memories will be added in Step 1b after research questions are defined.
 
 ### Step 1: Define Research Questions
 
@@ -30,7 +46,30 @@ Example for "payment system":
 
 Present the research questions to the engineer. Ask: "These are the areas I want to explore in parallel. Want to adjust?"
 
+After engineer approves the research questions, ask:
+
+```
+Research <N> questions with <N> agents.
+  • Task mode  — agents run independently, no coordination, best for quick/focused research
+  • Swarm mode — agents share a task list and can consult each other via messages when
+                 they find cross-domain findings; best when areas overlap or you want
+                 live visibility into progress
+
+Which mode?
+```
+
+Wait for confirmation before launching any agents.
+
+### Step 1b: Finalize Session Memory Bundle
+
+Now that the research questions and agent set are confirmed:
+1. If any specialist agents are included in this round (see Specialist Agents in Research section below) and MCP is AVAILABLE: call `search_nodes("<agent-name>", <topic>)` for each specialist.
+2. Append `## Pre-fetched Agent Memories` to the saved bundle (one `### <agent-name>` section per specialist). If only general Explore agents: omit this section.
+3. The finalized bundle is ready — include it in every agent prompt under `## Session Memory`.
+
 ### Step 2: Launch Research Agents
+
+#### Task Mode
 
 Launch 2-4 agents in parallel using the `Task` tool with `subagent_type: "Explore"`.
 
@@ -51,6 +90,32 @@ Your report should include:
 
 Be thorough. List every file. Show key code structures.
 Do NOT suggest changes - just report what exists.
+```
+
+#### Swarm Mode
+
+1. **Create team:** `TeamCreate` with name `research-<run-id>` (use the run ID from Step 0)
+2. **Create tasks:** `TaskCreate` one task per research question, with the full research prompt as the description (same prompt as task mode above, plus the consultation instruction below)
+3. **Spawn agents:** Launch Explore agents using the `Task` tool with `team_name: "research-<run-id>"`. One agent per research question. Launch all simultaneously.
+4. **Assign tasks:** `TaskUpdate` each task with the corresponding agent as `owner`
+5. **Monitor:** Track progress via `TaskList`. Agents will pick up their tasks and update status as they work.
+6. **Collect results:** Read agent completion reports and task outputs
+
+**Swarm mode agent prompt addition** — append this to every agent's research prompt when in swarm mode:
+
+```
+## Team Coordination
+
+You are part of a research team. Other agents are exploring adjacent areas simultaneously.
+
+If you find something that is clearly relevant to another agent's research area, send them a message:
+- Use `SendMessage` to the teammate assigned to that question
+- Keep it brief: "Found [X] in [file] — may be relevant to your area"
+
+If you are unsure whether your area overlaps with another agent's, you can ask:
+- `SendMessage`: "Are you covering [topic]? I found something that might be in your scope"
+
+Do NOT wait for replies before completing your own research. Consultation is optional and async.
 ```
 
 ### Step 3: Synthesize Results
@@ -96,53 +161,39 @@ This becomes input for the ongoing `/plan` conversation.
 - Time-box: if an agent is taking too long on too many files, it should summarize what it found so far.
 - Agents report facts, not opinions. No architecture suggestions.
 
-## Integration with /plan
+## Specialist Agents in Research
 
-Research results feed back into the planning conversation:
+When research touches a specialist's domain, you can include them as a research agent. Specialist agents bring their memory context into the research — they already know what they've seen in this project before.
+
+| Specialist | When to include in research |
+|------------|---------------------------|
+| `dba-expert` | Mapping data access patterns, understanding schema, exploring query behavior |
+| `product-manager` | Understanding existing scope decisions, mapping feature dependencies |
+| `devops-engineer` | Mapping deployment topology, understanding infrastructure constraints |
+| `security-expert` | Mapping authentication flows, understanding current security posture |
+| `penetration-agent` | Mapping attack surface before a security-sensitive feature |
+| `qa-automation` | Mapping existing test coverage before planning new test strategy |
+
+To include a specialist in a research round, launch them the same way as a standard Explore agent but reference their agent file:
 
 ```
-/plan payment feature
-  ↓
-  [discussion reveals complexity]
-  ↓
-  /team-research payment state, payment API, payment UI
-  ↓
-  [agents explore in parallel]
-  ↓
-  [synthesized results shared]
-  ↓
-  [planning conversation continues with full context]
-  ↓
-  Master Plan written
-```
+You are the <agent-name> agent. Follow the instructions in `.claude/agents/<agent-name>.md`.
 
-The engineer stays in the `/plan` conversation the whole time. Research is a sub-step, not a separate phase.
+## Session Memory
+<full contents of the session memory bundle built in Step 0>
 
-## Examples
+Research question: <specific research question for this agent>
 
-### Small research (2 agents)
-```
-/team-research how user profiles work
-→ Agent 1: Profile state and selectors
-→ Agent 2: Profile UI components
-```
+Your report should include:
+1. Files found relevant to your domain
+2. Patterns you observe
+3. Concerns or flags from your specialist perspective
+4. Relevant memories from past sessions in this project
 
-### Medium research (3 agents)
-```
-/team-research authentication system
-→ Agent 1: Auth state, tokens, session management
-→ Agent 2: Auth API calls and error handling
-→ Agent 3: Auth UI (login, signup, password reset)
+Do NOT suggest changes — just report what exists and what you know.
 ```
 
-### Large research (4 agents)
-```
-/team-research entire notification system
-→ Agent 1: Notification types and state
-→ Agent 2: Notification API and push integration
-→ Agent 3: Notification UI components
-→ Agent 4: Notification settings and preferences
-```
+Specialist research results are included in the synthesized research summary under a "Specialist Perspectives" section.
 
 ## Notes
 

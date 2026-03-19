@@ -62,11 +62,15 @@ Agents update the PRD files with execution logs, timestamps, and files touched.
 
 After execution, launch parallel review agents that verify the code matches the PRD specifications. Catches deviations, quality issues, and integration gaps.
 
+`/team-review` auto-selects specialist agents based on PRD content (e.g., security-expert if auth patterns are found, dba-expert if schema changes are present). The PM agent synthesizes all findings into a structured backlog: **Needed** (fix before merge), **Desirable** (do soon), **Hard** (separate planning session).
+
 ### 5. `/retro` - Retrospective
 
 Review what happened. What worked, what didn't, what the PRDs got wrong. Captured in a retrospective file for future reference.
 
 ## All Skills
+
+### Workflow Skills
 
 | Skill | Phase | What it does |
 |-------|-------|-------------|
@@ -76,6 +80,21 @@ Review what happened. What worked, what didn't, what the PRDs got wrong. Capture
 | `/execute` | Execution | Launch agents to implement tasks mechanically |
 | `/team-review` | Review (optional) | Parallel code review against PRD specs |
 | `/retro` | Retrospective | Capture learnings, update documentation |
+| `/set-context` | Anytime | Update current-topic.md for the active feature |
+| `/pm-backlog` | Anytime | View and manage the PM's open/deferred/resolved backlog |
+
+### Specialist Review Skills
+
+Each skill invokes a specialist agent for a focused, standalone review:
+
+| Skill | Agent | What it reviews |
+|-------|-------|----------------|
+| `/pm-review` | Product Manager | Scope creep, priority calls, efficiency tradeoffs |
+| `/qa-review` | QA Automation | Test coverage span, quality, acceptance criteria |
+| `/security-review` | Security Expert | Auth, input validation, OWASP Top 10, CVEs |
+| `/devops-review` | DevOps Engineer | Deployment safety, config, observability |
+| `/dba-review` | DBA Expert | Query performance, schema decisions, indexes |
+| `/pentest` | Penetration Agent | Attack vectors, business logic bypass paths |
 
 ## Quick Start
 
@@ -193,22 +212,93 @@ Put specialized agent definitions in `.claude/agents/`. PRD tasks can recommend 
 
 Put project-specific rules in `.claude/rules/`. These are loaded automatically by Claude Code.
 
+## Scrum Team Agents
+
+Six specialist agents participate in planning and review. Each has a persistent memory of past findings on your project — so the security expert remembers open vulnerabilities across sessions, the DBA remembers schema decisions, etc.
+
+| Agent | When it runs |
+|-------|-------------|
+| **Product Manager** | Always — synthesizes all review findings into a prioritized backlog |
+| **QA Automation** | Auto-selected if test files detected in PRD |
+| **Security Expert** | Auto-selected if auth/token/encrypt patterns detected |
+| **DevOps Engineer** | Auto-selected if deploy/config/infra patterns detected |
+| **DBA Expert** | Auto-selected if schema/query/migration patterns detected |
+| **Penetration Agent** | Requires explicit engineer confirmation (even when auto-matched) |
+
+Agents are invoked by `/team-review` automatically, or directly via the specialist review skills (`/security-review`, `/devops-review`, etc.).
+
+### Session Memory
+
+Before each review or execution run, the orchestrating skill assembles a **session memory bundle** containing:
+- Current feature context (from `current-topic.md`)
+- Pre-fetched past memories for each agent
+- Run metadata (ID, phase, PRD directory)
+
+This bundle is passed to every agent in the session. Agents don't fetch their own context — they use what's in the bundle. This keeps runs reproducible and prevents stale reads.
+
+Session bundles are saved to `.claude/context/run-log/` for audit and retro use.
+
+### PM Backlog
+
+After each `/team-review`, the Product Manager writes a structured backlog to `prds/<dir>/backlog.md`:
+
+- **Needed** — fix before merge (counts as High severity in the verdict)
+- **Desirable** — do soon, not blocking (counts as Medium)
+- **Hard** — needs its own planning session (informational only)
+
+Backlog items persist across review runs. Use `/pm-backlog <dir>` to view, resolve, or defer items.
+
 ## File Reference
 
 ```
 .claude/
   skills/
-    plan/SKILL.md           # Collaborative planning conversation
-    team-research/SKILL.md  # Parallel codebase exploration
-    prd/SKILL.md            # PRD generation from Master Plan
-    execute/SKILL.md        # Execution orchestrator (task + swarm)
-    team-review/SKILL.md    # Parallel code review
-    retro/SKILL.md          # Session retrospective
+    plan/SKILL.md             # Collaborative planning conversation
+    team-research/SKILL.md    # Parallel codebase exploration
+    prd/SKILL.md              # PRD generation from Master Plan
+    execute/SKILL.md          # Execution orchestrator (task + swarm)
+    team-review/SKILL.md      # Parallel code review + PM synthesis
+    retro/SKILL.md            # Session retrospective
+    set-context/SKILL.md      # Update current-topic.md
+    pm-backlog/SKILL.md       # View and manage PM backlog
+    pm-review/SKILL.md        # Standalone PM scope review
+    qa-review/SKILL.md        # Standalone QA coverage review
+    security-review/SKILL.md  # Standalone security review
+    devops-review/SKILL.md    # Standalone DevOps review
+    dba-review/SKILL.md       # Standalone DBA review
+    pentest/SKILL.md          # Standalone penetration test
+  agents/
+    product-manager.md        # PM agent definition + memory schema
+    qa-automation.md          # QA agent definition
+    security-expert.md        # Security agent definition
+    devops-engineer.md        # DevOps agent definition
+    dba-expert.md             # DBA agent definition
+    penetration-agent.md      # Pentest agent definition
+  context/
+    current-topic.md          # Active feature context (update each session)
+    run-log/                  # Session memory snapshots (gitignored)
+  memory/
+    agent-memory.json         # MCP memory DB (gitignored, project-local)
   rules/
-    workflow.md             # Full workflow specification
-    prd-format.md           # PRD structure and file change format
-prds/                       # Generated PRDs go here
+    workflow.md               # Full workflow specification
+    prd-format.md             # PRD structure and file change format
+prds/                         # Generated PRDs go here
 ```
+
+## Agent Memory Setup
+
+To enable cross-session agent memory in your project:
+
+1. Copy `.claude/settings.json` into your project's `.claude/` directory.
+2. **Update `MEMORY_FILE_PATH`** to the absolute path of your project's memory file — the relative path in the template is CWD-sensitive and will silently fail if Claude Code is launched from outside the project root:
+   ```json
+   "MEMORY_FILE_PATH": "/absolute/path/to/your-project/.claude/memory/agent-memory.json"
+   ```
+3. Copy `.claude/context/current-topic.md` into your project. Update it at the start of each session, or use `/set-context`.
+4. Copy `.claude/memory/.gitignore` to keep the memory DB out of git.
+5. Add `.claude/context/run-log/*.md` to your `.gitignore` to keep run snapshots ephemeral.
+
+Each project gets completely isolated agent memory. The memory file is created automatically on first use.
 
 ## Requirements
 

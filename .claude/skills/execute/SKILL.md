@@ -34,6 +34,16 @@ Ask the engineer which mode to use:
 
 ## Execution Flow
 
+### Step 0: Build Session Memory Bundle
+
+Before launching any task agents, assemble the shared context bundle.
+
+**1. Read current topic** — Read `.claude/context/current-topic.md` verbatim. If the file is missing or all fields are placeholder comments, stop and tell the engineer: "Run `/set-context` to set the current topic before executing."
+
+**2. Check MCP availability** — Attempt `search_nodes("mcp-health-check")`. Mark AVAILABLE or UNAVAILABLE.
+
+**3. Assemble partial bundle** — Build the Run Info + Current Topic + MCP Status sections only (no Pre-fetched Agent Memories yet). Set `Triggered by: /execute` and `Phase: EXECUTION`. Save to `.claude/context/run-log/<run-id>.md` using `YYYY-MM-DDTHH-MM-SS` format for the run ID. Agent memories will be added in Step 1b after PRD discovery.
+
 ### Step 1: Discovery and Validation
 
 1. Read `prds/<directory>/master-plan.md` to get PRD dependency graph
@@ -49,6 +59,14 @@ Ask the engineer which mode to use:
    - Check that all referenced dependencies exist (e.g., "Depends on: PRD-03" but PRD-03 doesn't exist).
 5. Build the wave plan: group PRDs by dependency order
 6. **Build the file manifest:** Collect all files to be created, modified, and deleted across all PRDs. This becomes the expected scope for post-execution verification.
+
+### Step 1b: Finalize Session Memory Bundle
+
+Now that you know the active agents from PRD discovery:
+1. Collect unique agent names from all `Recommended agent:` fields across all PRD tasks.
+2. If MCP is AVAILABLE and there are any recommended agents: call `search_nodes("<agent-name>", <topic>)` for each unique agent.
+3. Append `## Pre-fetched Agent Memories` to the saved bundle (one `### <agent-name>` section per active agent). If no recommended agents: omit this section.
+4. The finalized bundle is ready — include it in every agent prompt under `## Session Memory`.
 
 ### Step 2: Present Execution Plan
 
@@ -100,6 +118,9 @@ If something is ambiguous, STOP and report - do not guess.
 - Do not add imports, functions, or code not specified in the task
 - Do not refactor or "improve" surrounding code
 - If a recommended skill is listed, use it
+
+## Session Memory
+<full contents of the session memory bundle built in Step 0>
 
 ## When Complete, Report
 

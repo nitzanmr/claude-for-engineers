@@ -27,7 +27,9 @@ Generate detailed PRDs from an approved Master Plan. Each PRD contains tiny, hyp
 
 ### Step 1: Read the Master Plan
 
-Read `prds/{{argument}}/master-plan.md` (or find the latest PRD directory).
+**Before using the argument as a path:** Validate that `{{argument}}` contains only safe characters: letters, digits, hyphens, underscores, and the letter `T` (for timestamp separators). If the argument contains slashes, dots, spaces, or any other character, STOP and report: "Invalid PRD directory name — argument must be a safe directory name like `2026-03-18T11-15_feature-name`."
+
+Read `prds/{{argument}}/master-plan.md` (or find the latest PRD directory if no argument was given).
 
 Verify:
 - Master Plan exists
@@ -62,7 +64,7 @@ If the audit reveals call sites or consumers not covered by the current PRD plan
 
 ### Step 3: Generate PRD Files
 
-For each PRD, create a file following the format in `.claude/rules/prd-format.md`.
+For each PRD, create a file following the Master Plan and PRD File templates below.
 
 Key rules:
 - **Tiny tasks.** A task should be completable without decisions. If it requires a decision, it's too big. Split it.
@@ -164,9 +166,146 @@ paymentRecord: selectPaymentRecord(global, ownProps.paymentId),
 - [ ] No TypeScript errors
 ```
 
-## File Change Specification
+## Master Plan Template
 
-Follow these rules from `.claude/rules/prd-format.md`:
+```markdown
+# Master Plan: <Feature Name>
+
+Created: YYYY-MM-DD HH:MM UTC
+Status: DRAFT | APPROVED | PRDS_GENERATED | IN_PROGRESS | COMPLETED | PARTIAL | RETRO_COMPLETE
+Author: <who planned this>
+
+## Overview
+<2-3 sentences: what is being built and why>
+
+## Goals
+- <Goal 1>
+- <Goal 2>
+
+## Architecture Decisions
+- Decision 1: <what was decided and why>
+- Decision 2: <what was decided and why>
+
+## PRD Dependency Graph
+
+​```
+PRD-01 (no deps)  ──┐
+PRD-02 (no deps)  ──┼──> PRD-04 (depends: 01, 02, 03)
+PRD-03 (depends: 01)┘         │
+                              v
+                         PRD-05 (depends: 04)
+​```
+
+## PRD Summary
+
+| # | Name | Dependencies | Tasks | Complexity |
+|---|------|-------------|-------|------------|
+| 01 | Short name | None | 4 | Low |
+| 02 | Short name | None | 3 | Medium |
+
+## Out of Scope
+- <What is NOT being built>
+
+## Open Questions
+- <Should be empty before approval>
+```
+
+## PRD File Template
+
+```markdown
+# PRD-<NN>: <Title>
+
+Created: YYYY-MM-DD HH:MM UTC
+Status: PENDING | IN_PROGRESS | COMPLETED | BLOCKED
+Depends on: None | PRD-XX, PRD-YY
+Complexity: Low | Medium | High
+
+## Objective
+<One sentence: what this PRD achieves>
+
+## Context
+<Why this PRD exists, how it fits in the feature>
+
+## Tasks
+
+### Task 1: <Task Title>
+
+**Status:** PENDING
+**Complexity:** Low | Medium | High
+**Recommended skills:** <project-specific skills if applicable>
+
+#### File Changes
+
+##### CREATE: path/to/new/file.ts
+​```ts
+export function myFunction(param: string): Result {
+  // <description of logic>
+}
+​```
+
+##### MODIFY: path/to/existing/file.ts
+
+**Add import** (after existing imports):
+​```ts
+import { myFunction } from '../new/file';
+​```
+
+**Update `ResultType`** (add new field after `name`):
+​```ts
+newField: number;  // <why this field is needed>
+​```
+
+##### DELETE: path/to/obsolete/file.ts
+<Why this file is being removed>
+
+#### Unit Tests
+
+##### CREATE: tests/path/matching/source.test.ts
+​```ts
+import { myFunction } from '../../src/path/to/source';
+
+describe('myFunction', () => {
+  it('should return expected result for valid input', () => {
+    expect(myFunction('valid')).toEqual({ ... });
+  });
+  it('should handle edge case', () => {
+    expect(myFunction('')).toEqual(DEFAULT_VALUE);
+  });
+});
+​```
+
+#### Acceptance Criteria
+- [ ] `npm test -- source.test.ts` passes
+- [ ] `npm run typecheck` passes with no errors
+
+---
+
+### Task 2: <Task Title>
+**Status:** PENDING
+**Depends on:** Task 1
+...
+
+---
+
+## Execution Log
+
+### Task 1: <Task Title>
+- **Agent:** <agent type used>
+- **Mode:** task | swarm
+- **Started:** YYYY-MM-DD HH:MM UTC
+- **Completed:** YYYY-MM-DD HH:MM UTC
+- **Status:** COMPLETED | FAILED | PARTIAL
+- **Files created:** <list or "(none)">
+- **Files modified:** <list with description or "(none)">
+- **Files deleted:** <list or "(none)">
+- **Skills used:** <list or "(none)">
+- **Test results:** <command + PASS/FAIL>
+- **Issues encountered:** <list or "(none)">
+- **Acceptance criteria:**
+  - [x] Criterion 1
+```
+
+## File Change Specification
 
 | Change Size | What to Show |
 |-------------|-------------|
@@ -174,7 +313,7 @@ Follow these rules from `.claude/rules/prd-format.md`:
 | 20-50 lines | Function signatures + key logic |
 | 50+ lines / new files | Structure, exports, key functions with descriptions |
 
-Always provide **context anchors**:
+Always provide **context anchors** — not line numbers:
 - "After the line containing `const lang = useLang()`"
 - "Inside the `handleSubmit` function, after validation"
 - "Before the `export default` statement"
@@ -201,12 +340,37 @@ This tells the executor which agent type to assign. If no specialized agents exi
 
 ## Testing Requirements
 
-Follow the full testing rules in `.claude/rules/prd-format.md`. Key points:
+**Unit tests required for:** utility functions, reducers, selectors, API clients, business logic.
 
-- Every task with logic MUST include unit tests (inline or separate task)
-- Every feature MUST include a final integration test PRD that depends on all others
-- Acceptance criteria must be verifiable by running a test or command — no vague criteria
-- Type definitions, re-exports, CSS, and lang keys don't need tests
+**Unit tests optional for:** type definitions, re-exports, CSS/SCSS, lang keys, simple UI components.
+
+**Test file location:** mirror `src/` in `tests/` (e.g., `src/util/foo.ts` → `tests/util/foo.test.ts`).
+
+**Inline vs. separate task:** inline for 1-2 test cases; separate task when tests are substantial.
+
+**Integration test PRD:** every feature MUST have a final integration test PRD that depends on all other PRDs. Runs last.
+
+**Acceptance criteria must be verifiable:**
+```
+// BAD
+- [ ] Component works correctly
+
+// GOOD
+- [ ] `npm test -- foo.test.ts` passes
+- [ ] `npm run typecheck` passes with no errors
+- [ ] `selectFoo(global)` returns `global.foo`
+```
+
+## Task Granularity Rules
+
+Tasks must be completable without any decisions. If a task requires a decision, split it.
+
+- Adding a lang key = 1 task
+- Creating a component file = 1 task
+- Adding an import + calling a function = 1 task
+- Writing unit tests for a module = 1 task
+
+If a task description exceeds ~50 lines, split it. Ask: **Can an agent complete this without making any decisions?**
 
 ## Notes
 
