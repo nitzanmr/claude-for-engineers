@@ -100,7 +100,17 @@ Follow the format in `.claude/rules/prd-format.md`. Include:
 
 **Gate 2:** After writing, tell the engineer: "Master Plan written to `prds/<dir>/master-plan.md`. Please review it. Want to change anything before I generate the detailed PRDs?"
 
-Only after explicit approval, set the Status to `APPROVED` and tell the engineer to run `/prd <directory-name>`.
+Only after explicit approval:
+1. Set the Master Plan Status to `APPROVED`
+2. Auto-update `.claude/context/current-topic.md`:
+   ```
+   # Current Topic
+
+   Updated: <current UTC time>
+   Feature: <feature name from master plan>
+   Active PRD: <directory name>
+   ```
+3. Tell the engineer to run `/prd <directory-name>`.
 
 ## Rules
 

@@ -131,7 +131,7 @@ When to use:
 - When engineer wants thorough verification
 
 How it works:
-- Build session memory bundle (context snapshot + pre-fetched agent memories)
+- Build session memory bundle (context snapshot + current topic)
 - Scan PRD content to auto-select specialist agents; show selection to engineer
 - Launch parallel review agents (spec compliance + code quality + auto-selected specialists)
 - PM synthesizes all findings into prioritized backlog (Needed / Desirable / Hard)

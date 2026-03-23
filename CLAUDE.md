@@ -30,7 +30,7 @@ This repo uses the **Claude for Engineers** workflow for planning and executing 
 | `/retro` | After review | Capture learnings, update documentation |
 | `/set-context` | Start of session | Update current-topic.md interactively |
 | `/pm-backlog` | Anytime | View and manage the PM's structured backlog |
-| `/check-setup` | Before first use or when MCP feels broken | Verify settings, MCP, and topic are configured |
+| `/check-setup` | Before first use or when something feels broken | Verify settings and topic are configured |
 
 ### Specialist Review Skills
 
@@ -72,41 +72,13 @@ prds/
     retrospective.md
 ```
 
-## Agent Memory Setup
+## Project Setup
 
 Each project that uses the scrum team agents needs a one-time setup:
 
-1. **Copy `.claude/settings.json`** from this repo into your project's `.claude/` directory. This configures the MCP memory server.
+1. **Copy `.claude/context/current-topic.md`** into your project. Update it at the start of each planning session, or use `/set-context` to update it interactively.
 
-   **Create `.claude/settings.local.json`** (gitignored — do NOT commit it) with your absolute path:
-   ```json
-   {
-     "mcpServers": {
-       "memory": {
-         "env": {
-           "MEMORY_FILE_PATH": "/Users/yourname/your-project/.claude/memory/agent-memory.json"
-         }
-       }
-     },
-     "permissions": {
-       "allow": [
-         "mcp__memory__search_nodes"
-       ]
-     }
-   }
-   ```
-
-   Claude Code merges `settings.json` and `settings.local.json` at startup. The local file holds your machine-specific path; the committed file stays clean for other users.
-
-   **Important:** Never put your real absolute path in `settings.json` — it leaks your username and directory structure if the repo is public.
-
-2. **Copy `.claude/context/current-topic.md`** into your project. Update it at the start of each planning session, or use `/set-context` to update it interactively.
-
-3. **Copy `.claude/memory/.gitignore`** into your project to prevent the memory DB from being committed.
-
-4. **Add to your project's `.gitignore`**: `.claude/context/run-log/*.md` — this prevents run snapshots from being committed. The `.gitkeep` file keeps the directory in git; the snapshot files are ephemeral.
-
-The memory file is created automatically on first agent use. Each project has completely isolated agent memory.
+2. **Add to your project's `.gitignore`**: `.claude/context/run-log/*.md` — this prevents run snapshots from being committed. The `.gitkeep` file keeps the directory in git; the snapshot files are ephemeral.
 
 ## Scrum Team Agents
 
@@ -121,7 +93,7 @@ The workflow ships with six specialist agents that bring domain expertise to pla
 | DBA Expert | `.claude/agents/dba-expert.md` | Queries, schema, indexes |
 | Penetration Agent | `.claude/agents/penetration-agent.md` | Attack surface, business logic bypass |
 
-These agents are invoked by `/team-review` (automatically, based on PRD content) and by the specialist review skills above. They share memory across sessions via the MCP memory server.
+These agents are invoked by `/team-review` (automatically, based on PRD content) and by the specialist review skills above.
 
 ## Project-Specific Setup
 

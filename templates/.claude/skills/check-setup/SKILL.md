@@ -1,6 +1,6 @@
 ---
 name: check-setup
-description: Verify Claude for Engineers installation is correctly configured (settings, MCP, topic)
+description: Verify Claude for Engineers installation is correctly configured (settings, topic)
 argument-hint: (no arguments needed)
 tags: [setup, validation, config]
 ---
@@ -11,36 +11,34 @@ Verify that all required configuration for the Claude for Engineers workflow is 
 
 ## What It Checks
 
-1. `settings.json` — structure, MEMORY_FILE_PATH (absolute, not placeholder), pinned npm package
-2. `settings.local.json` — exists, has real absolute path
-3. MCP server — reachable and responding
-4. `current-topic.md` — exists and is initialized (not all placeholders)
-5. `.gitignore` — memory file and settings.local.json are ignored
+1. `settings.json` — valid JSON, required permissions present, CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS enabled
+2. `.gitignore` — run-log snapshots are gitignored
+3. `current-topic.md` — exists and is initialized (not all placeholders)
 
 ## Execution Steps
 
-### Step 1: Run settings-json.js validator
+### Step 1: Check settings.json
+
+Read `.claude/settings.json`.
+
+- If the file does not exist: report "FAIL: .claude/settings.json not found. Re-run the installer."
+- If not valid JSON: report "FAIL: .claude/settings.json is not valid JSON."
+- Check `env.CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS`:
+  - If missing or not `"1"`: report "FAIL: env.CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS must be set to \"1\" in settings.json."
+  - If present: report "OK: CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1"
+- Check `permissions.allow` contains all of: `TeamCreate`, `TaskCreate`, `TaskList`, `TaskUpdate`, `TaskGet`, `SendMessage`:
+  - If any are missing: report "FAIL: Missing required permissions: <list>."
+  - If all present: report "OK: required permissions present."
+
+### Step 2: Check .gitignore
 
 Run:
 ```bash
-node validate/settings-json.js
+git check-ignore -v ".claude/context/run-log/example.md"
 ```
 
-If the `validate/` directory does not exist, report: "FAIL: validate/ directory not found. Run the setup instructions in CLAUDE.md to install the validate scripts."
-
-Report the output. If it exits with an error, flag it as a setup issue to fix.
-
-### Step 2: Check .gitignore entries
-
-Run:
-```bash
-git check-ignore -v .claude/memory/agent-memory.json
-git check-ignore -v .claude/settings.local.json
-```
-
-- If `agent-memory.json` is NOT ignored: report "FAIL: .claude/memory/agent-memory.json is not gitignored. Add `.claude/memory/.gitignore` with `agent-memory.json`."
-- If `settings.local.json` is NOT ignored: report "FAIL: .claude/settings.local.json is not gitignored. Add `.claude/settings.local.json` to .gitignore."
-- If both are ignored: report "OK: sensitive files are gitignored."
+- If the file IS ignored: report "OK: run-log snapshots are gitignored."
+- If NOT ignored: report "WARN: .claude/context/run-log/*.md is not gitignored. Add `.claude/context/run-log/*.md` to .gitignore to prevent run snapshots from being committed."
 
 ### Step 3: Check current-topic.md
 
@@ -50,14 +48,7 @@ Read `.claude/context/current-topic.md`.
 - If all fields contain placeholder comments (lines starting with `#` or containing `<...>`): report "WARN: current-topic.md has not been updated. Run `/set-context` to set the current topic."
 - If the `Feature:` field has a real value: report "OK: current-topic.md is initialized (Feature: <value>)."
 
-### Step 4: Check MCP connectivity
-
-Attempt to call `search_nodes("mcp-health-check")`.
-
-- If the call succeeds (even with 0 results): report "OK: MCP memory server is reachable."
-- If the call fails or the tool is not available: report "FAIL: MCP memory server is not reachable. Check that settings.json (or settings.local.json) has a valid MEMORY_FILE_PATH and that npx can install @modelcontextprotocol/server-memory."
-
-### Step 5: Present Summary
+### Step 4: Present Summary
 
 Show a summary table:
 
@@ -65,11 +56,9 @@ Show a summary table:
 ────────────────────────────────────────
 Claude for Engineers — Setup Check
 ────────────────────────────────────────
-settings.json structure    OK | FAIL
-settings.local.json path   OK | FAIL | MISSING
-Gitignore rules            OK | FAIL
+settings.json              OK | FAIL
+Gitignore rules            OK | WARN
 current-topic.md           OK | WARN (not set) | FAIL (missing)
-MCP server                 OK | FAIL
 ────────────────────────────────────────
 Overall: READY | NEEDS_FIXES
 ```

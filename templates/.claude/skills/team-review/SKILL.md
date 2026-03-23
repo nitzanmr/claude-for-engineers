@@ -37,17 +37,13 @@ Launch parallel review agents to verify that executed PRD tasks produced correct
 
 Before launching any agents, assemble the shared context bundle. This runs once — all agents in this review session receive the same bundle.
 
-**1. Read current topic**
-Read `.claude/context/current-topic.md` verbatim. If the file is missing or all fields are placeholder comments, stop and tell the engineer: "Run `/set-context` to set the current topic before reviewing."
-
-**2. Check MCP availability**
-Attempt to call `search_nodes` with query `"mcp-health-check"`. If the tool responds (even with no results): MCP Status = `AVAILABLE`. If the tool is not found or errors: MCP Status = `UNAVAILABLE`.
-
-**3. Assemble partial bundle** — Build the Run Info + Current Topic + MCP Status sections only (no Pre-fetched Agent Memories yet). Set `Triggered by: /team-review` and `Phase: REVIEW`. Save to `.claude/context/run-log/<run-id>.md` using `YYYY-MM-DDTHH-MM-SS` format. Agent memories will be added in Step 2c after specialist selection is confirmed.
+Follow the assembly steps in `.claude/rules/session-memory-schema.md`. Set `Triggered by: /team-review` and `Phase: REVIEW`. Save to `.claude/context/run-log/<run-id>.md` using `YYYY-MM-DDTHH-MM-SS` format.
 
 ### Step 1: Read PRD Execution Logs
 
-Read all PRD files in the target directory. For each completed task, collect:
+**Before using the argument as a path:** Validate that `{{argument}}` contains only safe characters: letters, digits, hyphens, underscores, and the letter `T` (for timestamp separators). If the argument contains slashes, dots, spaces, or any other character, STOP and report: "Invalid PRD directory name — argument must be a safe directory name like `2026-03-18T11-15_feature-name`."
+
+Read all PRD files in `prds/{{argument}}/`. For each completed task, collect:
 - Files that were created
 - Files that were modified
 - Acceptance criteria
@@ -186,13 +182,6 @@ Which mode?
 
 Wait for confirmation before launching any agents.
 
-### Step 2c: Finalize Session Memory Bundle
-
-Now that the specialist set is confirmed:
-1. If MCP is AVAILABLE: call `search_nodes("<agent-name>", <topic>)` for `product-manager` (always) + each confirmed specialist agent.
-2. Append `## Pre-fetched Agent Memories` to the saved bundle (one `### <agent-name>` section per active agent).
-3. The finalized bundle is ready — include it in every agent prompt for this run under `## Session Memory`.
-
 Example launch prompt for a specialist:
 ```
 You are the <agent-name> agent. Follow the instructions in `.claude/agents/<agent-name>.md`.
@@ -202,7 +191,7 @@ You are the <agent-name> agent. Follow the instructions in `.claude/agents/<agen
 
 Review target: <PRD directory>
 
-Complete all steps in your agent instructions. Your context is in the Session Memory section above — do NOT independently read current-topic.md or call search_nodes.
+Complete all steps in your agent instructions. Your context is in the Session Memory section above. The PRD directory for this review is: prds/<dir>/
 ```
 
 ### Step 3: PM Synthesis (Always Run)
@@ -249,8 +238,6 @@ Output format:
 2. <next>
 ...
 ```
-
-Store PM decisions in memory as usual before completing.
 
 ### Step 4: Write Review and Backlog to Files
 

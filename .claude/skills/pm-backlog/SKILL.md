@@ -2,7 +2,7 @@
 name: pm-backlog
 description: View and manage the PM backlog for a feature. Shows open, deferred, and resolved items from all review sessions. Lets you mark items resolved or deferred.
 argument-hint: <prd-directory-name>
-allowed-tools: Read, Glob, Grep, Edit, mcp__memory__add_observations
+allowed-tools: Read, Glob, Grep, Edit
 tags: [backlog, product, pm, tracking]
 ---
 
@@ -14,7 +14,10 @@ View and update the PM's structured backlog for a feature. Items are written by 
 
 ### Step 1: Determine Target
 
-If an argument was provided, look for `prds/<argument>/backlog.md`.
+If an argument was provided:
+**Before using the argument as a path:** Validate that `{{argument}}` contains only safe characters: letters, digits, hyphens, underscores, and the letter `T` (for timestamp separators). If the argument contains slashes, dots, spaces, or any other character, STOP and report: "Invalid PRD directory name — argument must be a safe directory name like `2026-03-18T11-15_feature-name`."
+
+Look for `prds/{{argument}}/backlog.md`.
 Otherwise list available PRD directories and ask: "Which feature's backlog?"
 
 ### Step 2: Read Backlog File
@@ -48,29 +51,9 @@ Ask: "Want to update any items? Options: (r) mark resolved, (d) defer with reaso
 
 **Mark resolved:**
 1. In `backlog.md`: move the item from Open to Resolved, change `- [ ]` to `- [x]`, add `— resolved YYYY-MM-DD`.
-2. Write a `BACKLOG_UPDATE:` observation to MCP to keep memory in sync:
-   ```
-   add_observations({
-     entityName: "product-manager",
-     observations: [
-       "[<topic>] BACKLOG_UPDATE: id=<BLG-NNN> | status=RESOLVED | resolved=YYYY-MM-DD | resolved_by=pm-backlog"
-     ]
-   })
-   ```
-   Where `<topic>` is the feature name from the backlog.md header. If MCP is unavailable, skip this step and note it in the summary.
 
 **Defer:**
 1. In `backlog.md`: move the item from Open to Deferred, add `(reason: <engineer's reason>)`.
-2. Write a `BACKLOG_UPDATE:` observation to MCP:
-   ```
-   add_observations({
-     entityName: "product-manager",
-     observations: [
-       "[<topic>] BACKLOG_UPDATE: id=<BLG-NNN> | status=DEFERRED | reason=<engineer's reason>"
-     ]
-   })
-   ```
-   If MCP is unavailable, skip this step and note it in the summary.
 
 **No update:** Done.
 

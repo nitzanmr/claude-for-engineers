@@ -1,13 +1,4 @@
 {
-  "mcpServers": {
-    "memory": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-memory@2026.1.26"],
-      "env": {
-        "MEMORY_FILE_PATH": "REPLACE_WITH_LOCAL_PATH"
-      }
-    }
-  },
   "env": {
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
   },
@@ -19,11 +10,6 @@
       "TaskUpdate",
       "TaskGet",
       "SendMessage"
-    ],
-    "deny": [
-      "mcp__memory__delete_entities",
-      "mcp__memory__delete_observations",
-      "mcp__memory__delete_relations"
     ]
   }
 }

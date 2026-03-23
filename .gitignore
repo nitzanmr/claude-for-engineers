@@ -8,3 +8,5 @@ node_modules/
 
 # npm
 *.tgz
+.gemini/*
+GEMINI.md

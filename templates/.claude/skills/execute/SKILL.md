@@ -12,7 +12,7 @@ Execute approved PRDs by launching agents that follow task specifications mechan
 
 ## Prerequisites
 
-- PRDs must exist in `prds/<directory>/`
+- PRDs must exist in `prds/{{argument}}/`
 - Master Plan status should be `PRDS_GENERATED`
 - Engineer must have reviewed and approved the PRDs
 
@@ -38,15 +38,15 @@ Ask the engineer which mode to use:
 
 Before launching any task agents, assemble the shared context bundle.
 
-**1. Read current topic** — Read `.claude/context/current-topic.md` verbatim. If the file is missing or all fields are placeholder comments, stop and tell the engineer: "Run `/set-context` to set the current topic before executing."
+Follow the assembly steps in `.claude/rules/session-memory-schema.md`. The PRD directory is the skill argument. Set `Triggered by: /execute` and `Phase: EXECUTION`.
 
-**2. Check MCP availability** — Attempt `search_nodes("mcp-health-check")`. Mark AVAILABLE or UNAVAILABLE.
-
-**3. Assemble partial bundle** — Build the Run Info + Current Topic + MCP Status sections only (no Pre-fetched Agent Memories yet). Set `Triggered by: /execute` and `Phase: EXECUTION`. Save to `.claude/context/run-log/<run-id>.md` using `YYYY-MM-DDTHH-MM-SS` format for the run ID. Agent memories will be added in Step 1b after PRD discovery.
+Save to `.claude/context/run-log/<run-id>.md` using `YYYY-MM-DDTHH-MM-SS` format. Include the full bundle in every agent prompt under `## Session Memory`.
 
 ### Step 1: Discovery and Validation
 
-1. Read `prds/<directory>/master-plan.md` to get PRD dependency graph
+**Before using the argument as a path:** Validate that `{{argument}}` contains only safe characters: letters, digits, hyphens, underscores, and the letter `T` (for timestamp separators). If the argument contains slashes, dots, spaces, or any other character, STOP and report: "Invalid PRD directory name — argument must be a safe directory name like `2026-03-18T11-15_feature-name`."
+
+1. Read `prds/{{argument}}/master-plan.md` to get PRD dependency graph
 2. List and read all PRD files (`prd-*.md`)
 3. Parse each PRD for:
    - Status (skip if already `COMPLETED`)
@@ -59,14 +59,6 @@ Before launching any task agents, assemble the shared context bundle.
    - Check that all referenced dependencies exist (e.g., "Depends on: PRD-03" but PRD-03 doesn't exist).
 5. Build the wave plan: group PRDs by dependency order
 6. **Build the file manifest:** Collect all files to be created, modified, and deleted across all PRDs. This becomes the expected scope for post-execution verification.
-
-### Step 1b: Finalize Session Memory Bundle
-
-Now that you know the active agents from PRD discovery:
-1. Collect unique agent names from all `Recommended agent:` fields across all PRD tasks.
-2. If MCP is AVAILABLE and there are any recommended agents: call `search_nodes("<agent-name>", <topic>)` for each unique agent.
-3. Append `## Pre-fetched Agent Memories` to the saved bundle (one `### <agent-name>` section per active agent). If no recommended agents: omit this section.
-4. The finalized bundle is ready — include it in every agent prompt under `## Session Memory`.
 
 ### Step 2: Present Execution Plan
 

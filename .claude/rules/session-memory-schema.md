@@ -11,21 +11,11 @@ This document is the single source of truth for the session memory bundle format
 - Run ID: YYYY-MM-DDTHH-MM-SS          (seconds precision — prevents collisions in the same minute)
 - Triggered by: /<skill-name>           (execute | team-review | team-research)
 - Phase: EXECUTION | REVIEW | RESEARCH
-- PRD directory: prds/<dir>/
+- PRD directory: prds/<dir>/ (or N/A)
 
 ## Current Topic (snapshot at run time)
-<verbatim content of .claude/context/current-topic.md>
-
-## MCP Status
-- Server: AVAILABLE | UNAVAILABLE
-- Memory file: .claude/memory/agent-memory.json
-- Note: <only include this line if UNAVAILABLE — "All agents proceed without past memory this session">
-
-## Pre-fetched Agent Memories
-<One section per active agent only. Omit this entire section if no agents are active or MCP is UNAVAILABLE.>
-
-### <agent-name> — <relevant label for this agent>
-<search_nodes results, or "None" if no results>
+Feature: <feature name>
+Active PRD: <directory or "none">
 
 ## Phase Context
 <Use the phase-specific section below that matches the triggering skill>
@@ -52,22 +42,14 @@ This document is the single source of truth for the session memory bundle format
 
 ## Assembly Steps (same for all skills)
 
-1. **Read current topic** — Read `.claude/context/current-topic.md` verbatim. If the file is missing or all fields are placeholder comments, stop and tell the engineer: "Run `/set-context` to set the current topic before proceeding."
+1. **Auto-derive context** — Determine the active PRD directory (from skill argument, or from `Active PRD:` in `current-topic.md` if it exists):
+   - If a PRD directory is known: read `prds/<dir>/master-plan.md` and extract the `Feature:` value from the file header
+   - Compare with `current-topic.md` (if it exists). If the Feature or Active PRD differ, or if `current-topic.md` is missing: write an updated `current-topic.md` with the derived values
+   - If no PRD directory is known and `current-topic.md` is missing or empty: use `Feature: Unknown` and `Active PRD: none` — proceed without stopping
 
-2. **Check MCP availability** — Attempt `search_nodes("mcp-health-check")`. If it responds (even with no results): MCP Status = `AVAILABLE`. If it errors or the tool is not found: MCP Status = `UNAVAILABLE`.
+2. **Build and save bundle** — Assemble the full bundle (Run Info + Current Topic snapshot + Phase Context). Save to `.claude/context/run-log/<run-id>.md`.
 
-3. **Pre-fetch memories** (only if AVAILABLE) — Call `search_nodes` only for agents actively participating in this run. Use the `Feature:` field value from current-topic.md as the query. Active agent set depends on the triggering skill:
-   - `/execute`: agents listed as `Recommended agent:` in PRD task files — determined after Step 1 discovery. Skip pre-fetch if none.
-   - `/team-review`: `product-manager` (always) + specialists confirmed by engineer in Step 2b — done after Step 2b, not at run start.
-   - `/team-research`: specialist agents included in this research round from Step 1 — done after Step 1. Skip if only general Explore agents.
-   - Specialist review skills (`/pm-review`, `/qa-review`, etc.): the single agent for that skill only.
-   Omit the `## Pre-fetched Agent Memories` section entirely if no agents are active.
-
-4. **Fill the bundle** — Use the format above. Set the Phase Context section to the variant matching the current skill.
-
-5. **Save to run-log** — Write the assembled bundle to `.claude/context/run-log/<run-id>.md`.
-
-6. **Pass inline** — Include the full bundle in every agent prompt under `## Session Memory`. Agents do NOT read `current-topic.md` themselves or call `search_nodes` — all context is already in the bundle.
+3. **Pass inline** — Include the full bundle in every agent prompt under `## Session Memory`. Agents do NOT read `current-topic.md` themselves — all context is in the bundle.
 
 ## Run ID Format
 
