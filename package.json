@@ -1,0 +1,32 @@
+{
+  "name": "claude-for-engineers",
+  "version": "0.1.0",
+  "description": "Install the claude-for-engineers AI workflow into your project",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "bin": {
+    "claude-for-engineers": "bin/install.js"
+  },
+  "files": [
+    "bin/",
+    "lib/",
+    "templates/",
+    "README.md"
+  ],
+  "keywords": [
+    "claude",
+    "gemini",
+    "ai",
+    "workflow",
+    "planning",
+    "prd",
+    "agents",
+    "skills"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/YOUR_ORG/claude-for-engineers"
+  }
+}

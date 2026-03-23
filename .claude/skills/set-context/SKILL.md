@@ -12,25 +12,23 @@ Update `.claude/context/current-topic.md` with the current working topic so all 
 ## Steps
 
 ### Step 1: Read Current State
-Read `.claude/context/current-topic.md` to see the current topic.
+Read `.claude/context/current-topic.md` to show the current values (if the file exists).
 
-Show the engineer the current content and ask:
-- What is the new feature/topic?
-- What phase are you in? (PLANNING / PRD / EXECUTION / REVIEW / NONE)
+If an argument was provided, use it as the new feature name directly without asking.
+
+Otherwise ask the engineer:
+- What is the feature/topic name?
 - Which PRD directory is active? (or "none")
-- Any key decisions or open questions to record?
-
-If an argument was provided to this skill, use it as the new feature/topic name and skip asking for it.
 
 ### Step 2: Update the File
-Update `.claude/context/current-topic.md` with:
-- Updated timestamp (current UTC time)
-- New feature name
-- New phase
-- Active PRD directory (if any)
-- Key decisions (carry forward existing ones, add new ones)
-- Open questions
+Write `.claude/context/current-topic.md` with:
+```markdown
+# Current Topic
+
+Updated: <current UTC time>
+Feature: <feature name>
+Active PRD: <directory name or "none">
+```
 
 ### Step 3: Confirm
-Show the engineer the updated file content. Tell them:
-> "All specialist agents will pick up this context on their next invocation."
+Show the engineer the updated content.
