@@ -1,24 +1,27 @@
 # Current Topic
 
-Updated: 2026-03-19 00:00 UTC
+Updated: 2026-03-23 10:00 UTC
 Active PRD: none
-Feature: Perplexity AI Research Tool Integration
+Feature: Distributable NPX Package & MCP Server for claude-for-engineers
 Phase: RESEARCH
 
 ## What We're Building
-A new research tool/skill that integrates Perplexity AI for deep research and grounded analysis with current, real-time information. This would enhance the claude-for-engineers workflow by adding web-grounded research capabilities to planning, team-research, and specialist review phases.
+Making the claude-for-engineers workflow system distributable — users run `npx claude-for-engineers@latest` (or similar) and the workflow gets installed into their project's `.claude/` directory (Claude Code), `.gemini/` (Gemini CLI), or other AI runtimes. Also exploring MCP server as an alternative/complementary distribution mechanism.
 
 ## Key Decisions So Far
 - None yet — research phase
-- Agents involved: DevOps Engineer, PM, Security Expert
+- Inspired by: https://github.com/gsd-build/get-shit-done (get-shit-done-cc npx package)
+- Target runtimes: Claude Code (.claude/), Gemini CLI (.gemini/), Antigravity (.gemini/antigravity/)
 
 ## Open Questions
-- How should Perplexity AI be integrated into the workflow (new skill, MCP server, agent tool)?
-- What are the infrastructure and API key management implications?
-- What security risks does an external AI API integration introduce?
-- How does this complement or replace existing /team-research capabilities?
-- What deployment and configuration management is needed?
+- What exact files need to be copied per runtime (Claude, Gemini, Antigravity)?
+- How does Gemini CLI / Antigravity discover and load skills/agents?
+- Should the MCP server approach replace or complement the file-copy approach?
+- What content transformations are needed per runtime (like GSD does with convertClaudeToCopilotContent)?
+- What's the package structure for the npx binary (bin/install.js pattern)?
+- How do we handle settings.local.json (machine-specific paths) during install?
 
 ## Team Notes
-- Previous feature: Repo Security Audit, Test Coverage, and Improvement Ideas
-- Starting research into Perplexity AI integration for real-time grounded research
+- Previous feature: Token Efficiency Improvements
+- GSD uses: readline for prompts, no deps, Node 20+, bin/install.js entry point
+- GSD installs to: Claude=.claude/, Gemini=.gemini/, Antigravity=.gemini/antigravity/, Codex=.codex/, Cursor=.cursor/

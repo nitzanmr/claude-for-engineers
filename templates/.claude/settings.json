@@ -1,18 +1,10 @@
 {
   "mcpServers": {
-    "context7": {
-      "type": "local",
-      "command": ["npx", "-y", "@upstash/context7-mcp"],
-      "enabled": true,
-      "environment": {
-        "CONTEXT7_API_KEY": "${CONTEXT7_API_KEY}"
-      }
-    },
     "memory": {
-      "command": "/usr/local/bin/npx",
+      "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-memory@2026.1.26"],
       "env": {
-        "MEMORY_FILE_PATH": "/Users/nitzanmr/claude-for-engineers/.claude/memory/agent-memory.json"
+        "MEMORY_FILE_PATH": "REPLACE_WITH_LOCAL_PATH"
       }
     }
   },

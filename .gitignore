@@ -3,3 +3,8 @@ node_modules/
 *.log
 .claude/context/run-log/*.md
 .claude/settings.local.json
+.envs
+.claude/.env
+
+# npm
+*.tgz
