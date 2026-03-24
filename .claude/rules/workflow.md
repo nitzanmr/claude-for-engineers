@@ -139,6 +139,22 @@ How it works:
 - Show review dashboard: severity aggregate, backlog status, PRD status badge
 - Engineer decides what to fix (or run `/pm-backlog <dir>` to manage items)
 
+### Review → Merge Decision
+
+After `/team-review` completes, use backlog categories to determine merge readiness:
+
+| Backlog Category | Merge Action |
+|-----------------|-------------|
+| **Needed** (BLG items flagged as `[Needed]`) | Must fix before merge. Either create follow-up PRDs or fix inline, then re-run `/team-review` to clear. |
+| **Desirable** (BLG items flagged as `[Desirable]`) | Merge is safe. Track in issue tracker or manage with `/pm-backlog`. |
+| **Hard** (BLG items flagged as `[Hard]`) | Do NOT merge. Start a new `/plan` session — this requires re-scoping. |
+
+**Decision rules:**
+- All Needed items cleared → merge recommended
+- Only Desirable items remain → merge is safe, track separately
+- Any Hard items present → stop, re-plan
+- PRD Status `REVIEWED_PASS` → merge ready; `REVIEWED_NEEDS_FIXES` → fix required
+
 ### Phase 5: Retro (Retrospective)
 
 **Goal:** Capture what happened for future reference.
@@ -184,14 +200,32 @@ The workflow has explicit approval gates. Nothing proceeds without engineer conf
 - If a task modifies the same file as another task in the same wave, they run sequentially
 - `/execute` validates the dependency graph before execution — if a cycle is detected, it stops and reports
 
+### Task-Level Dependencies
+
+Tasks within a PRD can declare `Depends on: Task N` in their header. The rules are:
+
+- `/execute` validates task-level dependency chains before launching a PRD's tasks, using the same DFS cycle detection as PRD-level DAG validation
+- If a task is `FAILED` or `PARTIAL`, all tasks that declare `Depends on: Task N` on it are marked `BLOCKED` — unless the engineer explicitly overrides in the execution log with a note like "proceeding despite PARTIAL"
+- Circular task dependencies are an error — `/execute` stops and reports the cycle before starting the PRD
+
+Task dependency format in a PRD file:
+```markdown
+### Task 3: Wire component to state
+
+**Status:** PENDING
+**Depends on:** Task 1, Task 2
+```
+
 ### Status Transitions
 
 All status values and their valid transitions:
 
 **Master Plan:**
 ```
-DRAFT → APPROVED → PRDS_GENERATED → IN_PROGRESS → COMPLETED → RETRO_COMPLETE
-                                                 → PARTIAL (if tasks failed)
+DRAFT → APPROVED → PRDS_GENERATED → IN_PROGRESS → COMPLETED     → RETRO_COMPLETE
+                                                 → PARTIAL        → RETRO_COMPLETE
+                                                   (≥1 PRD ended in FAILED or PARTIAL;
+                                                    all others completed)
 ```
 
 **PRD:**
@@ -205,8 +239,10 @@ PENDING → IN_PROGRESS → COMPLETED → REVIEWED_PASS
 **Task:**
 ```
 PENDING → IN_PROGRESS → COMPLETED
-                      → FAILED
-                      → BLOCKED (dependency failed)
+                      → FAILED          (task could not run to completion — always blocks dependents)
+                      → PARTIAL         (task completed but ≥1 acceptance criterion did not pass —
+                                         blocks dependents by default; engineer can override)
+                      → BLOCKED         (a dependency is FAILED or PARTIAL without engineer override)
 ```
 
 ### Scaling Limits
@@ -227,6 +263,35 @@ Testing is built into the workflow at every level:
 - Tests can be inline with the task or a separate test task
 - Acceptance criteria must be verifiable by running a test or command
 - Every feature MUST include a final integration test PRD that depends on all other PRDs
+
+**Integration Test PRD Convention:**
+
+Every feature MUST end with an integration test PRD. Rules:
+
+- **Name:** `prd-NN_integration-tests.md` (where NN is the last PRD number)
+- **Depends on:** ALL implementation PRDs — it is the final node in the dependency DAG
+- **Content:** Only test tasks — no production code changes
+- **Acceptance criteria per task:** A runnable command (e.g., `npm test -- integration.test.js`)
+- **Counts** toward the PRD total in the Master Plan summary table
+
+Example dependency line: `Depends on: PRD-01, PRD-02, PRD-03`
+
+Example task:
+```markdown
+### Task 1: Run end-to-end integration suite
+
+**Status:** PENDING
+**Complexity:** Low
+
+#### File Changes
+
+##### CREATE: tests/integration/feature.test.js
+(test code here)
+
+#### Acceptance Criteria
+- [ ] `npm test -- tests/integration/feature.test.js` exits 0
+- [ ] All integration scenarios defined in the Master Plan are covered
+```
 
 **During execution (`/execute` phase):**
 - Agents run unit tests as part of task completion

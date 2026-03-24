@@ -62,10 +62,13 @@ Depending on what you've been given (PRD, code files, schema, query, question):
 ## DBA Review — <topic>
 
 ### Findings
-#### 🔴 Critical
+#### 🔴 Critical — data loss, corruption, or severe performance risk
 - <issue> — <file/query/location>
 
-#### 🟡 Warnings
+#### 🟠 High — production performance risk or unsafe migration
+- <issue> — <file/query/location>
+
+#### 🟡 Medium — correctness concern or suboptimal pattern
 - <issue> — <file/query/location>
 
 #### 🟢 Notes

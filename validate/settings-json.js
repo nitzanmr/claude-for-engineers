@@ -11,9 +11,35 @@ const fs = require('fs');
 const root = process.cwd();
 const settingsPath = path.join(root, '.claude', 'settings.json');
 
+/**
+ * Strip single-line // comments from a JSONC string.
+ * Handles comments inside quoted strings by skipping string contents.
+ */
+function stripJsoncComments(str) {
+  let result = '';
+  let i = 0;
+  while (i < str.length) {
+    if (str[i] === '"') {
+      // Inside a string — copy verbatim until closing quote
+      result += str[i++];
+      while (i < str.length && str[i] !== '"') {
+        if (str[i] === '\\') result += str[i++]; // escape char
+        result += str[i++];
+      }
+      result += str[i++] || ''; // closing quote
+    } else if (str[i] === '/' && str[i + 1] === '/') {
+      // Single-line comment — skip to end of line
+      while (i < str.length && str[i] !== '\n') i++;
+    } else {
+      result += str[i++];
+    }
+  }
+  return result;
+}
+
 let settings;
 try {
-  settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+  settings = JSON.parse(stripJsoncComments(fs.readFileSync(settingsPath, 'utf8')));
 } catch (e) {
   console.error('FAIL: .claude/settings.json is not valid JSON:', e.message);
   process.exit(1);

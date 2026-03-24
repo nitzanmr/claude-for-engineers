@@ -2,6 +2,7 @@
 name: set-context
 description: Update the current project topic so all specialist agents know what the team is working on
 argument-hint: <feature name or topic description>
+allowed-tools: Read, Write
 tags: [context, agents, setup]
 ---
 
@@ -11,16 +12,24 @@ Update `.claude/context/current-topic.md` with the current working topic so all 
 
 ## Steps
 
-### Step 1: Read Current State
-Read `.claude/context/current-topic.md` to see the current topic.
+### Step 1: Read and Display Current State
 
-Show the engineer the current content and ask:
-- What is the new feature/topic?
-- What phase are you in? (PLANNING / PRD / EXECUTION / REVIEW / NONE)
-- Which PRD directory is active? (or "none")
-- Any key decisions or open questions to record?
+Read `.claude/context/current-topic.md`.
 
-If an argument was provided to this skill, use it as the new feature/topic name and skip asking for it.
+Show the current values in a table before asking for changes:
+
+```
+Current topic:
+  Feature   : <value or "(not set)">
+  Active PRD : <value or "(none)">
+  Updated    : <value or "never">
+```
+
+If an argument was provided (`{{argument}}`), use it as the new Feature name directly — skip asking.
+
+Otherwise ask the engineer:
+- What is the new feature/topic name? (press Enter to keep current)
+- Which PRD directory is now active? (press Enter to keep current, type "none" to clear)
 
 ### Step 2: Update the File
 Update `.claude/context/current-topic.md` with:

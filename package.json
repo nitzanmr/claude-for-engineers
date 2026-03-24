@@ -1,10 +1,14 @@
 {
   "name": "claude-for-engineers",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Install the claude-for-engineers AI workflow into your project",
   "license": "MIT",
   "engines": {
     "node": ">=20.0.0"
+  },
+  "scripts": {
+    "test": "node --test lib/transformers/toml.test.js tests/installer.test.js tests/manifest.test.js",
+    "validate": "make validate"
   },
   "bin": {
     "claude-for-engineers": "bin/install.js"

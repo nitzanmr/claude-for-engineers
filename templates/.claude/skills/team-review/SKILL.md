@@ -310,13 +310,13 @@ Show the engineer a structured dashboard in the conversation. Full details are i
 **1. Compute severity aggregate**
 
 Scan all agent reports collected before Step 3. Count findings by severity using these mappings:
-- security-expert: 🔴 Critical → Critical, 🟠 High → High, 🟡 Medium → Medium
-- code-quality agent: HIGH → High, MEDIUM → Medium, LOW → Low
-- dba-expert: 🔴 Critical → Critical, 🟡 Warning → Medium
-- devops-engineer: 🔴 Blocker → Critical, 🟡 Risk → Medium
-- qa-automation: 🔴 Critical gap → High, 🟡 Weak coverage → Medium
-- integration agent: gaps → Medium
-- spec compliance: MAJOR_DEVIATION → High, MINOR_DEVIATION → Low
+All specialist agents now use the standard four-level scale:
+- 🔴 Critical → Critical
+- 🟠 High → High
+- 🟡 Medium → Medium
+- 🟢 Low / Notes → Low (informational only, not counted in totals)
+- code-quality agent: HIGH → High, MEDIUM → Medium, LOW → Low (unchanged)
+- spec-compliance agent: MAJOR_DEVIATION → High, MINOR_DEVIATION → Low (unchanged)
 - product-manager: Needed items → High, Desirable items → Medium, Hard items → informational (not counted in severity totals)
 
 **2. Determine overall assessment**

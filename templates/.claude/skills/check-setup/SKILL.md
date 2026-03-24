@@ -2,6 +2,7 @@
 name: check-setup
 description: Verify Claude for Engineers installation is correctly configured (settings, topic)
 argument-hint: (no arguments needed)
+allowed-tools: Read, Bash
 tags: [setup, validation, config]
 ---
 
@@ -30,6 +31,13 @@ Read `.claude/settings.json`.
   - If any are missing: report "FAIL: Missing required permissions: <list>."
   - If all present: report "OK: required permissions present."
 
+### Step 1.5: Check settings.local.json (informational)
+
+Read `.claude/settings.local.json`.
+
+- If the file **does not exist**: report "INFO: No settings.local.json found. This file is optional — create it to add MCP servers, API keys, or custom env vars. It is never overwritten by upgrades."
+- If the file **exists**: report "OK: settings.local.json exists (your custom config is preserved on upgrades)."
+
 ### Step 2: Check .gitignore
 
 Run:
@@ -57,6 +65,7 @@ Show a summary table:
 Claude for Engineers — Setup Check
 ────────────────────────────────────────
 settings.json              OK | FAIL
+settings.local.json        OK | INFO (not found — optional)
 Gitignore rules            OK | WARN
 current-topic.md           OK | WARN (not set) | FAIL (missing)
 ────────────────────────────────────────

@@ -49,9 +49,29 @@ Full template with examples: `.claude/skills/prd/SKILL.md`
 
 ## Status Transition Rules
 
-- Task: `PENDING` → `IN_PROGRESS` → `COMPLETED` | `FAILED` | `BLOCKED`
+- Task: `PENDING` → `IN_PROGRESS` → `COMPLETED` | `FAILED` | `PARTIAL` | `BLOCKED`
 - PRD: `PENDING` → `IN_PROGRESS` → `COMPLETED` | `PARTIAL` | `BLOCKED`
 - Master Plan: `DRAFT` → `APPROVED` → `PRDS_GENERATED` → `IN_PROGRESS` → `COMPLETED` | `PARTIAL` | `RETRO_COMPLETE`
+
+### PARTIAL vs FAILED
+
+| Status | Meaning | Downstream effect |
+|--------|---------|-------------------|
+| `FAILED` | Task could not run to completion (error, missing file, crash) | Always blocks dependents |
+| `PARTIAL` | Task ran to completion but ≥1 acceptance criterion did not pass | Blocks dependents by default; engineer can override in execution log |
+
+### Task-Level Dependency Syntax
+
+Tasks within a PRD may also declare dependencies on other tasks in the same PRD:
+
+```markdown
+### Task 2: <Task Title>
+**Status:** PENDING
+**Depends on:** Task 1
+**Complexity:** Low
+```
+
+The `Depends on:` field lists task numbers (e.g., `Task 1`, `Task 1, Task 3`). `/execute` validates these chains for cycles before starting the PRD.
 
 ## Execution Log Format
 

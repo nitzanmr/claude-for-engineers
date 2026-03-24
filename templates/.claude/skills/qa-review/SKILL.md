@@ -2,6 +2,7 @@
 name: qa-review
 description: Invoke the QA automation agent to evaluate test coverage span, test quality, and suggest measurable acceptance criteria
 argument-hint: <PRD directory, file path, or test strategy question>
+allowed-tools: Read, Glob, Grep, Bash, Write, Task
 tags: [review, qa, testing, coverage, specialist, agents]
 ---
 

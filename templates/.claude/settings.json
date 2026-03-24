@@ -1,14 +1,22 @@
 {
+  // claude-for-engineers configuration
+  // This file is package-owned and updated automatically on upgrade.
+  // For MCP servers, API keys, and custom env vars: use settings.local.json instead.
+
+  // Required: enables agent swarm mode used by /execute and /team-review
   "env": {
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
   },
   "permissions": {
     "allow": [
+      // TeamCreate: creates a shared team workspace for swarm-mode agents
       "TeamCreate",
+      // TaskCreate / TaskList / TaskUpdate / TaskGet: task coordination in swarm mode
       "TaskCreate",
       "TaskList",
       "TaskUpdate",
       "TaskGet",
+      // SendMessage: agents communicate with each other in swarm mode
       "SendMessage"
     ]
   }

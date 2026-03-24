@@ -2,6 +2,7 @@
 name: plan
 description: Collaborative planning conversation to produce a Master Plan for a feature
 argument-hint: <feature idea or problem to solve>
+allowed-tools: Read, Glob, Grep, Bash, Write, Edit
 tags: [planning, collaboration, architecture]
 ---
 

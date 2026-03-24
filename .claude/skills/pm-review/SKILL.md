@@ -2,6 +2,7 @@
 name: pm-review
 description: Invoke the PM agent to evaluate scope, priority, and efficiency tradeoffs. Differentiates needed improvements from hard addons.
 argument-hint: <PRD directory, feature description, or scope question>
+allowed-tools: Read, Glob, Grep, Bash, Write, Task
 tags: [review, product, scope, specialist, agents]
 ---
 

@@ -79,6 +79,9 @@ Your report should include:
 
 Be thorough. List every file. Show key code structures.
 Do NOT suggest changes - just report what exists.
+
+## Session Memory
+<full contents of the session memory bundle built in Step 0>
 ```
 
 #### Swarm Mode

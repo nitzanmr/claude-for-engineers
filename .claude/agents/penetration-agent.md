@@ -69,17 +69,26 @@ Format your findings using the report format below. All attack vectors should be
 ## Penetration Test Report — <topic>
 
 ### Attack Vectors Found
-#### 🔴 Exploitable Now
+#### 🔴 Critical — exploitable now, high impact
 - **Vector:** <type>
 - **Location:** <file, function, endpoint>
 - **Attack path:** <step-by-step how to exploit>
 - **Impact:** <what an attacker gains>
 - **Remediation:** <what needs to change>
 
-#### 🟡 Potential Vector (needs confirmation)
+#### 🟠 High — confirmed vulnerability, exploitation requires specific conditions
+- **Vector:** <type>
+- **Location:** <file, function, endpoint>
+- **Attack path:** <step-by-step how to exploit>
+- **Remediation:** <what needs to change>
+
+#### 🟡 Medium — potential vector, needs confirmation
 - **Vector:** <type>
 - **Why suspicious:** <what looks exploitable>
 - **Next step to confirm:** <what to test>
+
+#### 🟢 Notes — informational, low-risk observations
+- <observation>
 
 ### Tested and Clear
 - <area reviewed, no vectors found>

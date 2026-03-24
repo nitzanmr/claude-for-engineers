@@ -2,6 +2,7 @@
 name: prd
 description: Generate detailed PRDs with hyper-specific tasks from an approved Master Plan
 argument-hint: <prd-directory-name or feature-name>
+allowed-tools: Read, Glob, Grep, Bash, Write, Edit
 tags: [prd, specification, planning]
 ---
 
@@ -102,7 +103,11 @@ Tell the engineer:
 - Which have dependencies
 - Ask them to review the PRD files
 
-**Do NOT proceed to execution.** The engineer reviews PRDs in their editor and either approves or requests changes.
+**Approval gate:** Tell the engineer:
+
+> "PRDs written to `prds/<dir>/`. Please review each file. Reply with **'approved'** when ready to execute, or list any changes you want first."
+
+Do NOT proceed to execution until the engineer replies with explicit approval. If they request changes, update the affected PRD files and present the gate again.
 
 ## Task Granularity Examples
 

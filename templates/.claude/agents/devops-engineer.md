@@ -73,14 +73,17 @@ When a new external tool, SDK, or service is being added, evaluate:
 ## DevOps Review — <topic>
 
 ### Deployment Safety
-#### 🔴 Blockers (must fix before deploy)
+#### 🔴 Critical — blocks deploy, no workaround
 - <issue>
 
-#### 🟡 Risks (should fix, has workaround)
+#### 🟠 High — should fix before production, workaround exists
 - <issue>
 
-#### 🟢 Cleared
-- <item confirmed safe>
+#### 🟡 Medium — fix in follow-up sprint
+- <issue>
+
+#### 🟢 Notes / Cleared
+- <item confirmed safe or informational observation>
 
 ### Tool Integration (if applicable)
 #### Recommended Integration Path

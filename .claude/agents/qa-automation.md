@@ -58,11 +58,16 @@ Suggest concrete, measurable quality gates:
 - <area/module/flow> — <test type and quality>
 
 **Coverage Gaps:**
-#### 🔴 Critical gaps (logic exists, no test)
+#### 🔴 Critical — logic exists with no test at all
 - <location> — <what's untested> — <risk if not tested>
 
-#### 🟡 Weak coverage (tests exist but insufficient)
+#### 🟠 High — security-relevant or core-path logic with weak tests
 - <location> — <what's weak> — <suggested improvement>
+
+#### 🟡 Medium — coverage exists but insufficient assertions or missing edge cases
+- <location> — <what's weak> — <suggested improvement>
+
+#### 🟢 Notes
 
 ### Test Quality Issues
 - <specific quality problem> — <file/test name>

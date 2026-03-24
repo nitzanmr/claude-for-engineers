@@ -2,6 +2,7 @@
 name: devops-review
 description: Invoke the DevOps engineer agent to review deployment readiness, production implications, infrastructure decisions, and tool integration — including discovering, configuring, testing, and embedding new tools or external services into a project
 argument-hint: <PRD directory, file path, or deployment question>
+allowed-tools: Read, Glob, Grep, Bash, Write, Task
 tags: [review, devops, production, specialist, agents]
 ---
 

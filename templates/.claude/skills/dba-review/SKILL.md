@@ -2,6 +2,7 @@
 name: dba-review
 description: Invoke the DBA expert agent to review database queries, schema decisions, or data access patterns
 argument-hint: <file path, PRD directory, or question about data layer>
+allowed-tools: Read, Glob, Grep, Bash, Write, Task
 tags: [review, database, specialist, agents]
 ---
 

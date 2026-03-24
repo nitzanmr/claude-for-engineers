@@ -2,6 +2,7 @@
 name: security-review
 description: Invoke the security expert agent to review authentication, authorization, input validation, and known vulnerability patterns. Also acts as a security advisor on new tools, APIs, and external services — evaluating their trust model, vulnerability surface, credential risks, and issuing an ADOPT / ADOPT WITH CONTROLS / DO NOT ADOPT verdict
 argument-hint: <PRD directory, file path, or security question>
+allowed-tools: Read, Glob, Grep, Bash, Write, Task
 tags: [review, security, vulnerabilities, specialist, agents]
 ---
 
